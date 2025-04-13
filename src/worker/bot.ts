@@ -209,6 +209,18 @@ export const createBot = async ({
       await ctx.reply(calcMsg, {
         parse_mode: "MarkdownV2",
         reply_parameters: { message_id: billMessageId },
+        reply_markup: {
+          inline_keyboard: [
+            [
+              {
+                text: "Open Bill in Web App",
+                web_app: {
+                  url: getWebAppUrl(ctx.chat.id, billMessageId),
+                },
+              },
+            ],
+          ],
+        },
         // reply_markup: {
         // force_reply: true,
         //   inline_keyboard: [[{ text: "Open thread", url: linkToThread }]],
