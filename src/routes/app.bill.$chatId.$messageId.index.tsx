@@ -1,7 +1,13 @@
+import { createFileRoute } from "@tanstack/react-router";
+
 import { useState } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+
+export const Route = createFileRoute("/app/bill/$chatId/$messageId/")({
+  component: RouteComponent,
+});
 
 // Sample data for food items and voters
 const foodItems = [
@@ -18,7 +24,8 @@ const foodItems = [
   { id: 4, name: "Carrot cake", voters: [{ id: 4, color: "bg-pink-300" }] },
 ];
 
-export default function ItemSelectionPage() {
+function RouteComponent() {
+  const navigate = Route.useNavigate();
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
 
   const toggleItem = (itemId: number) => {
@@ -33,7 +40,7 @@ export default function ItemSelectionPage() {
 
   const handleDone = () => {
     if (hasSelections) {
-      // router.push("/results");
+      navigate({ to: "./results" });
     }
   };
 
