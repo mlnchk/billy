@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { useMutation } from "@tanstack/react-query";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 
 import { useState } from "react";
 
@@ -6,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { apiClient } from "@/lib/api";
 import { Avatar } from "@/components/ui/avatar";
+
+const MY_ID = "43044295";
 
 function getColorFromId(id: number): string {
   // Use the id as a seed for pseudo-random generation
@@ -59,6 +62,30 @@ export const Route = createFileRoute("/app/bill/$chatId/$messageId/")({
 
 function RouteComponent() {
   const { bill, votes } = Route.useLoaderData();
+  const { chatId, messageId } = Route.useParams();
+  const router = useRouter();
+
+  const { mutate: updateVotes } = useMutation({
+    async mutationFn() {
+      const response = await apiClient.bill[":chatId"][":messageId"].vote.$post(
+        {
+          param: { chatId, messageId },
+          // TODO: replace my id with the user id from telegram api
+          json: { userId: MY_ID, itemIds: selectedItems },
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to update votes");
+      }
+
+      return response.json();
+    },
+
+    onSuccess() {
+      router.invalidate();
+    },
+  });
 
   const navigate = Route.useNavigate();
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
@@ -74,9 +101,10 @@ function RouteComponent() {
   const hasSelections = selectedItems.length > 0;
 
   const handleDone = () => {
-    if (hasSelections) {
-      navigate({ to: "./results" });
-    }
+    if (!hasSelections) return;
+
+    updateVotes();
+    navigate({ to: "./results" });
   };
 
   return (
