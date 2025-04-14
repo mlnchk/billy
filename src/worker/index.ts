@@ -4,10 +4,13 @@ import { createBot } from "./bot";
 import { createAiService } from "./services/ai";
 import { createStorageService } from "./services/storage";
 import { Hono } from "hono";
+import { apiRouter } from "./routes/api";
 
 // TODO: add webhook registration on start
 
 export const app = new Hono<{ Bindings: Env }>();
+
+app.route("/api/client", apiRouter);
 
 app.use(`/api/bot/*`, async (c) => {
   console.log("bot webhook", c.req.path);
