@@ -1,9 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/app/bill/$chatId/$messageId/results")({
-  component: RouteComponent,
-});
-
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Clock } from "lucide-react";
@@ -13,54 +9,31 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { apiClient } from "@/lib/api";
+import { getColorFromId } from "@/lib/colors";
+import { MY_ID } from "@/lib/constants";
 
-// Define consistent colors
-const COLORS = {
-  DAN: "bg-green-200",
-  KSENDJI: "bg-yellow-200",
-  ILYA: "bg-pink-200",
-};
+export const Route = createFileRoute("/app/bill/$chatId/$messageId/results")({
+  component: RouteComponent,
+  loader: async ({ params }) => {
+    const { chatId, messageId } = params;
+    const response = await apiClient.bill[":chatId"][":messageId"].results.$get(
+      {
+        param: { chatId, messageId },
+      },
+    );
 
-// Sample data for users and their selected items
-const currentUser = {
-  id: 1,
-  name: "Your share",
-  color: COLORS.DAN,
-  total: 15,
-  items: [
-    { id: 1, name: "Pizza", price: 6 },
-    { id: 2, name: "Cappicino", price: 2 },
-    { id: 3, name: "Salad", price: 4 },
-    { id: 4, name: "Carrot cake", price: 3 },
-  ],
-};
+    if (!response.ok) {
+      throw new Error("Failed to fetch results");
+    }
 
-const otherUsers = [
-  {
-    id: 2,
-    name: "Ksendji",
-    color: COLORS.KSENDJI,
-    total: 13,
-    items: [
-      { id: 1, name: "Pizza", price: 6 },
-      { id: 3, name: "Salad", price: 4 },
-      // Additional items could be added here
-    ],
+    return response.json();
   },
-  {
-    id: 3,
-    name: "Ilya",
-    color: COLORS.ILYA,
-    total: 6,
-    items: [
-      { id: 1, name: "Pizza", price: 6 },
-      { id: 4, name: "Carrot cake", price: 3 },
-    ],
-  },
-];
+});
 
 export default function RouteComponent() {
   const navigate = Route.useNavigate();
+  const { userSelections, unvotedItems } = Route.useLoaderData();
 
   const handleRevote = () => {
     navigate({ to: ".." });
@@ -73,6 +46,8 @@ export default function RouteComponent() {
   const handleComplete = () => {
     navigate({ to: "../summary" });
   };
+
+  const currentUser = { name: MY_ID, ...userSelections[MY_ID] };
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
@@ -99,7 +74,10 @@ export default function RouteComponent() {
               <div className="flex items-center justify-between p-4 border-b">
                 <div className="flex items-center gap-3">
                   <Avatar
-                    className={`w-6 h-6 ${currentUser.color} avatar-transition`}
+                    className={`w-6 h-6 avatar-transition`}
+                    style={{
+                      backgroundColor: getColorFromId(Number(currentUser.name)),
+                    }}
                   >
                     <AvatarFallback className="text-xs"></AvatarFallback>
                   </Avatar>
@@ -111,17 +89,19 @@ export default function RouteComponent() {
               </div>
 
               {/* User items */}
-              {currentUser.items.map((item) => (
+              {currentUser.itemsWithProportion.map((item, index) => (
                 <div
-                  key={item.id}
+                  key={index}
                   className="flex items-center justify-between py-2 px-4 border-b last:border-b-0 cursor-pointer hover:bg-gray-50"
-                  onClick={() => handleItemClick(item.id)}
+                  onClick={() => handleItemClick(index)}
                 >
                   <div className="flex items-center gap-2">
                     <Clock className="w-4 h-4 text-gray-400" />
-                    <span className="text-base">{item.name}</span>
+                    <span className="text-base">{item.item.nameEnglish}</span>
                   </div>
-                  <span className="text-gray-500">${item.price}</span>
+                  <span className="text-gray-500">
+                    ${item.proportionalPrice}
+                  </span>
                 </div>
               ))}
             </div>
@@ -131,37 +111,44 @@ export default function RouteComponent() {
 
             {/* Other Users Section */}
             <Accordion type="multiple" className="w-full">
-              {otherUsers.map((user) => (
+              {Object.entries(userSelections).map(([userId, user]) => (
                 <AccordionItem
-                  key={user.id}
-                  value={`user-${user.id}`}
+                  key={userId}
+                  value={`user-${userId}`}
                   className="border-b"
                 >
                   <AccordionTrigger className="px-4 py-3 hover:no-underline">
                     <div className="flex items-center justify-between w-full">
                       <div className="flex items-center gap-3">
                         <Avatar
-                          className={`w-6 h-6 ${user.color} avatar-transition`}
+                          className={`w-6 h-6 avatar-transition`}
+                          style={{
+                            backgroundColor: getColorFromId(Number(userId)),
+                          }}
                         >
                           <AvatarFallback className="text-xs"></AvatarFallback>
                         </Avatar>
-                        <span className="text-lg font-medium">{user.name}</span>
+                        <span className="text-lg font-medium">{userId}</span>
                       </div>
                       <span className="font-bold">${user.total}</span>
                     </div>
                   </AccordionTrigger>
                   <AccordionContent>
-                    {user.items.map((item) => (
+                    {user.itemsWithProportion.map((item, index) => (
                       <div
-                        key={item.id}
+                        key={index}
                         className="flex items-center justify-between py-2 px-4 border-t last:border-b-0 cursor-pointer hover:bg-gray-50"
-                        onClick={() => handleItemClick(item.id)}
+                        onClick={() => handleItemClick(index)}
                       >
                         <div className="flex items-center gap-2">
                           <Clock className="w-4 h-4 text-gray-400" />
-                          <span className="text-base">{item.name}</span>
+                          <span className="text-base">
+                            {item.item.nameEnglish}
+                          </span>
                         </div>
-                        <span className="text-gray-500">${item.price}</span>
+                        <span className="text-gray-500">
+                          ${item.proportionalPrice}
+                        </span>
                       </div>
                     ))}
                   </AccordionContent>

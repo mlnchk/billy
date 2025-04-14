@@ -4,6 +4,7 @@ import { zValidator } from "@hono/zod-validator";
 
 import { createStorageService } from "../services/storage";
 import { z } from "zod";
+import { calculateBillSplit } from "../services/calculator";
 
 export const apiRouter = new Hono<{ Bindings: Env }>()
   .get("/bill/:chatId/:messageId", async (c) => {
@@ -26,6 +27,33 @@ export const apiRouter = new Hono<{ Bindings: Env }>()
     );
 
     return c.json({ bill, votes: Object.fromEntries(votes) });
+  })
+  .get("/bill/:chatId/:messageId/results", async (c) => {
+    const storageService = createStorageService({ kv: c.env.BILLY });
+    const { chatId, messageId } = c.req.param();
+
+    const bill = await storageService.getBill(
+      Number(chatId),
+      Number(messageId),
+    );
+
+    if (!bill) {
+      return c.json({ error: "Bill not found" }, 404);
+    }
+
+    // Get all votes using storage service
+    const votes = await storageService.getVotes(
+      Number(chatId),
+      Number(messageId),
+    );
+
+    const calculationResult = calculateBillSplit(bill, votes);
+
+    return c.json({
+      ...calculationResult,
+      // TODO: add superjson
+      userSelections: Object.fromEntries(calculationResult.userSelections),
+    });
   })
   .post(
     "/bill/:chatId/:messageId/vote",
