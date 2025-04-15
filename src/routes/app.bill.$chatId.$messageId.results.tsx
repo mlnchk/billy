@@ -89,11 +89,11 @@ export default function RouteComponent() {
               </div>
 
               {/* User items */}
-              {currentUser.itemsWithProportion.map((item, index) => (
+              {currentUser.itemsWithProportion.map((item) => (
                 <div
-                  key={index}
+                  key={item.item.id}
                   className="flex items-center justify-between py-2 px-4 border-b last:border-b-0 cursor-pointer hover:bg-gray-50"
-                  onClick={() => handleItemClick(index)}
+                  onClick={() => handleItemClick(item.item.id)}
                 >
                   <div className="flex items-center gap-2">
                     <Clock className="w-4 h-4 text-gray-400" />
@@ -111,49 +111,51 @@ export default function RouteComponent() {
 
             {/* Other Users Section */}
             <Accordion type="multiple" className="w-full">
-              {Object.entries(userSelections).map(([userId, user]) => (
-                <AccordionItem
-                  key={userId}
-                  value={`user-${userId}`}
-                  className="border-b"
-                >
-                  <AccordionTrigger className="px-4 py-3 hover:no-underline">
-                    <div className="flex items-center justify-between w-full">
-                      <div className="flex items-center gap-3">
-                        <Avatar
-                          className={`w-6 h-6 avatar-transition`}
-                          style={{
-                            backgroundColor: getColorFromId(Number(userId)),
-                          }}
-                        >
-                          <AvatarFallback className="text-xs"></AvatarFallback>
-                        </Avatar>
-                        <span className="text-lg font-medium">{userId}</span>
+              {Object.entries(userSelections)
+                .filter(([userId]) => userId !== MY_ID)
+                .map(([userId, user]) => (
+                  <AccordionItem
+                    key={userId}
+                    value={`user-${userId}`}
+                    className="border-b"
+                  >
+                    <AccordionTrigger className="px-4 py-3 hover:no-underline">
+                      <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center gap-3">
+                          <Avatar
+                            className={`w-6 h-6 avatar-transition`}
+                            style={{
+                              backgroundColor: getColorFromId(Number(userId)),
+                            }}
+                          >
+                            <AvatarFallback className="text-xs"></AvatarFallback>
+                          </Avatar>
+                          <span className="text-lg font-medium">{userId}</span>
+                        </div>
+                        <span className="font-bold">${user.total}</span>
                       </div>
-                      <span className="font-bold">${user.total}</span>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    {user.itemsWithProportion.map((item, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between py-2 px-4 border-t last:border-b-0 cursor-pointer hover:bg-gray-50"
-                        onClick={() => handleItemClick(index)}
-                      >
-                        <div className="flex items-center gap-2">
-                          <Clock className="w-4 h-4 text-gray-400" />
-                          <span className="text-base">
-                            {item.item.nameEnglish}
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      {user.itemsWithProportion.map((item, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between py-2 px-4 border-t last:border-b-0 cursor-pointer hover:bg-gray-50"
+                          onClick={() => handleItemClick(index)}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Clock className="w-4 h-4 text-gray-400" />
+                            <span className="text-base">
+                              {item.item.nameEnglish}
+                            </span>
+                          </div>
+                          <span className="text-gray-500">
+                            ${item.proportionalPrice}
                           </span>
                         </div>
-                        <span className="text-gray-500">
-                          ${item.proportionalPrice}
-                        </span>
-                      </div>
-                    ))}
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
+                      ))}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
             </Accordion>
           </div>
 

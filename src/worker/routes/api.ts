@@ -55,6 +55,44 @@ export const apiRouter = new Hono<{ Bindings: Env }>()
       userSelections: Object.fromEntries(calculationResult.userSelections),
     });
   })
+  .get("/bill/:chatId/:messageId/items/:itemId", async (c) => {
+    const storageService = createStorageService({ kv: c.env.BILLY });
+    const { chatId, messageId, itemId } = c.req.param();
+
+    const bill = await storageService.getBill(
+      Number(chatId),
+      Number(messageId),
+    );
+
+    if (!bill) {
+      return c.json({ error: "Bill not found" }, 404);
+    }
+
+    const billItem = bill.items[Number(itemId)];
+
+    if (!billItem) {
+      return c.json({ error: "Item not found" }, 404);
+    }
+
+    const votes = await storageService.getVotes(
+      Number(chatId),
+      Number(messageId),
+    );
+
+    const userVotes = Array.from(votes.entries())
+      // filter voters who voted for this item
+      .map(([userId, userVotes]) => {
+        return {
+          userId,
+          share: userVotes.filter((vote) => vote === Number(itemId)).length,
+        };
+      });
+
+    return c.json({
+      billItem,
+      userVotes,
+    });
+  })
   .post(
     "/bill/:chatId/:messageId/vote",
     zValidator(

@@ -80,8 +80,8 @@ export function calculateBillSplit(
       const additionalCosts = vat + serviceFee - discount;
 
       // TODO: recalculate based on subtotal
-      const result = additionalCosts *
-        (userTotal / (bill.total - additionalCosts));
+      const result =
+        additionalCosts * (userTotal / (bill.total - additionalCosts));
 
       return result;
     };

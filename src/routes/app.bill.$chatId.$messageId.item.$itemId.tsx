@@ -19,103 +19,69 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
+import { apiClient } from "@/lib/api";
+import { getColorFromId } from "@/lib/colors";
 export const Route = createFileRoute(
   "/app/bill/$chatId/$messageId/item/$itemId",
 )({
   component: RouteComponent,
+  loader: async ({ params }) => {
+    const { chatId, messageId, itemId } = params;
+
+    const response = await apiClient.bill[":chatId"][":messageId"].items[
+      ":itemId"
+    ].$get({
+      param: { chatId, messageId, itemId },
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch bill item");
+    }
+
+    return response.json();
+  },
 });
 
-// Define consistent colors
-const COLORS = {
-  DAN: "bg-green-200",
-  KSENDJI: "bg-yellow-200",
-  ILYA: "bg-pink-200",
-  ALEX: "bg-purple-200",
-  JAMIE: "bg-blue-200",
-  TAYLOR: "bg-orange-200",
-};
-
-// Color mapping for pie chart
-const COLOR_MAP = {
-  "green-200": "#86efac",
-  "yellow-200": "#fef08a",
-  "pink-200": "#fbcfe8",
-  "purple-200": "#e9d5ff",
-  "blue-200": "#bfdbfe",
-  "orange-200": "#fed7aa",
-};
-
-// Initial voters data
-const initialVoters = [
-  { id: 1, name: "Dan", color: COLORS.DAN, shares: 1 },
-  { id: 2, name: "Ksendji", color: COLORS.KSENDJI, shares: 1 },
-  { id: 3, name: "Ilya", color: COLORS.ILYA, shares: 1 },
-];
-
-// Additional people who can be added
-const additionalPeople = [
-  { id: 4, name: "Alex", color: COLORS.ALEX },
-  { id: 5, name: "Jamie", color: COLORS.JAMIE },
-  { id: 6, name: "Taylor", color: COLORS.TAYLOR },
-];
-
 export default function RouteComponent() {
-  const params = Route.useParams();
   const navigate = Route.useNavigate();
-  const [voters, setVoters] = useState(initialVoters);
+  const { billItem, userVotes } = Route.useLoaderData();
+  const [voters, setVoters] = useState(userVotes);
   const [showAddPeople, setShowAddPeople] = useState(false);
-
-  // Item details (would come from API/database in a real app)
-  const itemDetails = {
-    id: params.id,
-    name: "Pizza",
-    price: 18,
-  };
-
-  // Calculate total shares
-  // const totalShares = voters.reduce((sum, voter) => sum + voter.shares, 0);
 
   // Prepare data for pie chart
   const chartData = voters.map((voter) => ({
-    name: voter.name,
-    value: voter.shares,
-    color: voter.color.replace("bg-", ""),
+    name: voter.userId,
+    value: voter.share,
+    color: getColorFromId(Number(voter.userId)),
   }));
 
   // Handle share increment/decrement
-  const updateShares = (id: number, increment: boolean) => {
+  const updateShares = (userId: string, increment: boolean) => {
     setVoters((prev) =>
       prev.map((voter) => {
-        if (voter.id === id) {
-          const newShares = increment
-            ? voter.shares + 1
-            : Math.max(1, voter.shares - 1);
-          return { ...voter, shares: newShares };
+        console.log(voter.userId, userId);
+        if (voter.userId === userId) {
+          const newShare = increment
+            ? voter.share + 1
+            : Math.max(1, voter.share - 1);
+          return { ...voter, share: newShare };
         }
         return voter;
       }),
     );
   };
 
-  // Add a new person to the voters list
   const addPerson = (personId: string) => {
-    const person = additionalPeople.find((p) => p.id.toString() === personId);
-    if (person) {
-      setVoters((prev) => [...prev, { ...person, shares: 1 }]);
-      setShowAddPeople(false);
-    }
+    // const person = additionalPeople.find((p) => p.id.toString() === personId);
+    // if (person) {
+    //   setVoters((prev) => [...prev, { ...person, shares: 1 }]);
+    //   setShowAddPeople(false);
+    // }
   };
 
-  // Handle save and return to the Split screen
   const handleSave = () => {
-    // In a real app, you would save the data here
+    // TODO: save the data here
     navigate({ to: "../../results" });
-  };
-
-  // Get color for pie chart
-  const getColorForChart = (colorName: string) => {
-    return COLOR_MAP[colorName] || "#cccccc";
   };
 
   return (
@@ -126,16 +92,16 @@ export default function RouteComponent() {
           <div className="p-4 border-b flex justify-between items-center">
             <div className="flex items-center gap-2">
               <button
-                onClick={() => navigate({ to: "../.." })}
+                onClick={() => navigate({ to: "../../results" })}
                 className="text-gray-600 hover:text-gray-900"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
               <h1 className="text-2xl font-bold title-transition">
-                {itemDetails.name}
+                {billItem.nameEnglish}
               </h1>
             </div>
-            <span className="font-bold text-xl">${itemDetails.price}</span>
+            <span className="font-bold text-xl">${billItem.priceTotal}</span>
           </div>
 
           <div className="flex-1 overflow-auto">
@@ -148,30 +114,32 @@ export default function RouteComponent() {
             <div className="px-4 space-y-3">
               {voters.map((voter) => (
                 <div
-                  key={voter.id}
+                  key={voter.userId}
                   className="flex items-center justify-between"
                 >
                   <div className="flex items-center gap-3">
                     <Avatar
-                      className={`w-6 h-6 ${voter.color} avatar-transition`}
-                    >
-                      <AvatarFallback className="text-xs"></AvatarFallback>
-                    </Avatar>
-                    <span className="text-lg">{voter.name}</span>
+                      className={`w-6 h-6 avatar-transition`}
+                      style={{
+                        backgroundColor: getColorFromId(Number(voter.userId)),
+                      }}
+                    />
+
+                    <span className="text-lg">{voter.userId}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => updateShares(voter.id, false)}
+                      onClick={() => updateShares(voter.userId, false)}
                       className="text-gray-500 hover:text-gray-700"
                       aria-label="Decrease share"
                     >
                       <Minus className="w-5 h-5" />
                     </button>
                     <div className="w-8 h-8 border rounded-md flex items-center justify-center">
-                      {voter.shares}
+                      {voter.share}
                     </div>
                     <button
-                      onClick={() => updateShares(voter.id, true)}
+                      onClick={() => updateShares(voter.userId, true)}
                       className="text-gray-500 hover:text-gray-700"
                       aria-label="Increase share"
                     >
@@ -202,20 +170,23 @@ export default function RouteComponent() {
                       <SelectValue placeholder="Select a person" />
                     </SelectTrigger>
                     <SelectContent>
-                      {additionalPeople
+                      {voters
                         .filter(
-                          (person) => !voters.some((v) => v.id === person.id),
+                          (person) =>
+                            !voters.some((v) => v.userId === person.userId),
                         )
                         .map((person) => (
-                          <SelectItem
-                            key={person.id}
-                            value={person.id.toString()}
-                          >
+                          <SelectItem key={person.userId} value={person.userId}>
                             <div className="flex items-center gap-2">
                               <div
-                                className={`w-3 h-3 rounded-full ${person.color}`}
-                              ></div>
-                              {person.name}
+                                className={`w-3 h-3 rounded-full`}
+                                style={{
+                                  backgroundColor: getColorFromId(
+                                    Number(person.userId),
+                                  ),
+                                }}
+                              />
+                              {person.userId}
                             </div>
                           </SelectItem>
                         ))}
@@ -235,21 +206,11 @@ export default function RouteComponent() {
                     cy="50%"
                     outerRadius={80}
                     dataKey="value"
-                    label={({ name, color }) => (
-                      <g>
-                        <circle
-                          cx={0}
-                          cy={0}
-                          r={10}
-                          fill={getColorForChart(color)}
-                        />
-                      </g>
-                    )}
                   >
                     {chartData.map((entry, index) => (
                       <Cell
                         key={`cell-${index}`}
-                        fill={getColorForChart(entry.color)}
+                        fill={entry.color}
                         stroke="#ffffff"
                         strokeWidth={2}
                       />
