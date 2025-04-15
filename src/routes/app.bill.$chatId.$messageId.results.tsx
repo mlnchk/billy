@@ -127,9 +127,7 @@ export default function RouteComponent() {
                             style={{
                               backgroundColor: getColorFromId(Number(userId)),
                             }}
-                          >
-                            <AvatarFallback className="text-xs"></AvatarFallback>
-                          </Avatar>
+                          />
                           <span className="text-lg font-medium">{userId}</span>
                         </div>
                         <span className="font-bold">${user.total}</span>
@@ -156,6 +154,44 @@ export default function RouteComponent() {
                     </AccordionContent>
                   </AccordionItem>
                 ))}
+
+              <AccordionItem value={`unvoted`} className="border-b">
+                <AccordionTrigger className="px-4 py-3 hover:no-underline">
+                  <div className="flex items-center justify-between w-full">
+                    <div className="flex items-center gap-3">
+                      <Avatar className={`w-6 h-6 avatar-transition`}>
+                        <AvatarFallback className="text-xs"></AvatarFallback>
+                      </Avatar>
+                      <span className="text-lg font-medium">Unvoted</span>
+                    </div>
+                    <span className="font-bold">
+                      $
+                      {unvotedItems.reduce(
+                        (acc, item) =>
+                          acc +
+                          (item.priceTotal ??
+                            (item.pricePerUnit ?? 0) * (item.quantity ?? 0)),
+                        0,
+                      )}
+                    </span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  {unvotedItems.map((item, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between py-2 px-4 border-t last:border-b-0 cursor-pointer hover:bg-gray-50"
+                      onClick={() => handleItemClick(index)}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-gray-400" />
+                        <span className="text-base">{item.nameEnglish}</span>
+                      </div>
+                      <span className="text-gray-500">${item.priceTotal}</span>
+                    </div>
+                  ))}
+                </AccordionContent>
+              </AccordionItem>
             </Accordion>
           </div>
 
