@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -21,6 +21,8 @@ import {
 } from "@/components/ui/select";
 import { apiClient } from "@/lib/api";
 import { getColorFromId } from "@/lib/colors";
+import { useMutation } from "@tanstack/react-query";
+
 export const Route = createFileRoute(
   "/app/bill/$chatId/$messageId/item/$itemId",
 )({
@@ -44,9 +46,25 @@ export const Route = createFileRoute(
 
 export default function RouteComponent() {
   const navigate = Route.useNavigate();
+  const { chatId, messageId, itemId } = Route.useParams();
   const { billItem, userVotes } = Route.useLoaderData();
   const [voters, setVoters] = useState(userVotes);
   const [showAddPeople, setShowAddPeople] = useState(false);
+  const router = useRouter();
+
+  const { mutateAsync: updateVotes } = useMutation({
+    mutationFn: async () => {
+      await apiClient.bill[":chatId"][":messageId"].items[":itemId"].edit.$post(
+        {
+          param: { chatId, messageId, itemId },
+          json: voters,
+        },
+      );
+    },
+    onSuccess: () => {
+      router.invalidate();
+    },
+  });
 
   // Prepare data for pie chart
   const chartData = voters.map((voter) => ({
@@ -79,8 +97,9 @@ export default function RouteComponent() {
     // }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     // TODO: save the data here
+    await updateVotes();
     navigate({ to: "../../results" });
   };
 

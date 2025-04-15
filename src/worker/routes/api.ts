@@ -94,6 +94,50 @@ export const apiRouter = new Hono<{ Bindings: Env }>()
     });
   })
   .post(
+    "/bill/:chatId/:messageId/items/:itemId/edit",
+    zValidator(
+      "json",
+      z.array(
+        z.object({
+          userId: z.string(),
+          share: z.number(),
+        }),
+      ),
+    ),
+    async (c) => {
+      const storageService = createStorageService({ kv: c.env.BILLY });
+      const { chatId, messageId, itemId } = c.req.param();
+      const votes = c.req.valid("json");
+
+      const currentVotes = await storageService.getVotes(
+        Number(chatId),
+        Number(messageId),
+      );
+
+      console.log(itemId, votes, currentVotes);
+
+      await Promise.all(
+        votes.map((vote) => {
+          const currentUserVotes = currentVotes.get(vote.userId) || [];
+
+          const newUserVotes = [
+            ...currentUserVotes.filter((v) => v !== Number(itemId)),
+            ...new Array(vote.share).fill(Number(itemId)),
+          ];
+
+          storageService.storeVote(
+            Number(chatId),
+            Number(messageId),
+            vote.userId,
+            newUserVotes,
+          );
+        }),
+      );
+
+      return c.json({ ok: true });
+    },
+  )
+  .post(
     "/bill/:chatId/:messageId/vote",
     zValidator(
       "json",
