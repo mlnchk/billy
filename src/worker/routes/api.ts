@@ -8,7 +8,7 @@ import { calculateBillSplit } from "../services/calculator";
 
 export const apiRouter = new Hono<{ Bindings: Env }>()
   .get("/bill/:chatId/:messageId", async (c) => {
-    const storageService = createStorageService({ kv: c.env.BILLY });
+    const storageService = createStorageService({ db: c.env.BILLY_DB });
     const { chatId, messageId } = c.req.param();
 
     const bill = await storageService.getBill(
@@ -29,7 +29,7 @@ export const apiRouter = new Hono<{ Bindings: Env }>()
     return c.json({ bill, votes: Object.fromEntries(votes) });
   })
   .get("/bill/:chatId/:messageId/results", async (c) => {
-    const storageService = createStorageService({ kv: c.env.BILLY });
+    const storageService = createStorageService({ db: c.env.BILLY_DB });
     const { chatId, messageId } = c.req.param();
 
     const bill = await storageService.getBill(
@@ -56,22 +56,13 @@ export const apiRouter = new Hono<{ Bindings: Env }>()
     });
   })
   .get("/bill/:chatId/:messageId/items/:itemId", async (c) => {
-    const storageService = createStorageService({ kv: c.env.BILLY });
+    const storageService = createStorageService({ db: c.env.BILLY_DB });
     const { chatId, messageId, itemId } = c.req.param();
 
-    const bill = await storageService.getBill(
-      Number(chatId),
-      Number(messageId),
-    );
-
-    if (!bill) {
-      return c.json({ error: "Bill not found" }, 404);
-    }
-
-    const billItem = bill.items[Number(itemId)];
+    const billItem = await storageService.getBillItem(Number(itemId));
 
     if (!billItem) {
-      return c.json({ error: "Item not found" }, 404);
+      return c.json({ error: "Bill item not found" }, 404);
     }
 
     const votes = await storageService.getVotes(
@@ -105,7 +96,7 @@ export const apiRouter = new Hono<{ Bindings: Env }>()
       ),
     ),
     async (c) => {
-      const storageService = createStorageService({ kv: c.env.BILLY });
+      const storageService = createStorageService({ db: c.env.BILLY_DB });
       const { chatId, messageId, itemId } = c.req.param();
       const votes = c.req.valid("json");
 
@@ -147,7 +138,7 @@ export const apiRouter = new Hono<{ Bindings: Env }>()
       }),
     ),
     async (c) => {
-      const storageService = createStorageService({ kv: c.env.BILLY });
+      const storageService = createStorageService({ db: c.env.BILLY_DB });
       const { chatId, messageId } = c.req.param();
       const { userId, itemIds } = c.req.valid("json");
 

@@ -1,4 +1,4 @@
-import { Bill, BillItem, BillItemWithId } from "../types.ts";
+import { Bill, BillItem, BillItemWithId, BillWithItemIds } from "../types.ts";
 
 interface ItemVoters {
   [index: number]: Map<string, number>;
@@ -29,7 +29,7 @@ function getTotalItemCost(item: BillItem): number {
 }
 
 export function calculateBillSplit(
-  bill: Bill,
+  bill: BillWithItemIds,
   votes: Map<string, number[]>,
 ): CalculationResult {
   const itemVoters: ItemVoters = {};
@@ -61,7 +61,7 @@ export function calculateBillSplit(
       const proportionalPrice = totalItemCost * proportion;
 
       return {
-        item: { ...item, id: index },
+        item,
         proportionalPrice,
         proportion,
       };
@@ -71,20 +71,6 @@ export function calculateBillSplit(
       (sum, itemWithProportion) => sum + itemWithProportion.proportionalPrice,
       0,
     );
-
-    const getAdditionalCosts = (userTotal: number): number => {
-      const vat = bill.vat || 0;
-      const serviceFee = bill.serviceFee || 0;
-      const discount = bill.totalDiscount || 0;
-
-      const additionalCosts = vat + serviceFee - discount;
-
-      // TODO: recalculate based on subtotal
-      const result =
-        additionalCosts * (userTotal / (bill.total - additionalCosts));
-
-      return result;
-    };
 
     userSelections.set(userName, {
       itemsWithProportion: selectedItems,

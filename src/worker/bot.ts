@@ -67,25 +67,32 @@ export const createBot = async ({
   bot.command("webapp", async (ctx) => {
     const chatId = ctx.chat.id;
     // const messageId = 335;
+    if (!ctx.message?.reply_to_message) {
+      return ctx.reply("Please reply to a message with /webapp");
+    }
 
-    console.log("chatId", chatId);
+    const replyToMessage = ctx.message.reply_to_message;
+    const messageId = replyToMessage.message_id;
 
-    return ctx.reply("Here is the webapp", {
-      parse_mode: "MarkdownV2",
-      // reply_parameters: { message_id: messageId },
-      // reply_markup: {
-      //   inline_keyboard: [
-      //     [
-      //       {
-      //         text: "Open Bill in Web App",
-      //         web_app: {
-      //           url: getWebAppUrl(chatId, messageId),
-      //         },
-      //       },
-      //     ],
-      //   ],
-      // },
-    });
+    return ctx.reply(
+      "Here is the webapp\n\n" + getWebAppUrl(chatId, messageId),
+      {
+        parse_mode: "Markdown",
+        // reply_parameters: { message_id: messageId },
+        reply_markup: {
+          inline_keyboard: [
+            [
+              {
+                text: "Open Bill in Web App",
+                web_app: {
+                  url: getWebAppUrl(chatId, messageId),
+                },
+              },
+            ],
+          ],
+        },
+      },
+    );
   });
 
   // Handle photo messages with /parse command

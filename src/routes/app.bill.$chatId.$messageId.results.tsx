@@ -97,7 +97,9 @@ export default function RouteComponent() {
                 >
                   <div className="flex items-center gap-2">
                     <Clock className="w-4 h-4 text-gray-400" />
-                    <span className="text-base">{item.item.nameEnglish}</span>
+                    <span className="text-base">
+                      {item.item.id}. {item.item.nameEnglish}
+                    </span>
                   </div>
                   <span className="text-gray-500">
                     ${item.proportionalPrice}
@@ -138,12 +140,12 @@ export default function RouteComponent() {
                         <div
                           key={index}
                           className="flex items-center justify-between py-2 px-4 border-t last:border-b-0 cursor-pointer hover:bg-gray-50"
-                          onClick={() => handleItemClick(index)}
+                          onClick={() => handleItemClick(item.item.id)}
                         >
                           <div className="flex items-center gap-2">
                             <Clock className="w-4 h-4 text-gray-400" />
                             <span className="text-base">
-                              {item.item.nameEnglish}
+                              {item.item.id}. {item.item.nameEnglish}
                             </span>
                           </div>
                           <span className="text-gray-500">
@@ -181,11 +183,13 @@ export default function RouteComponent() {
                     <div
                       key={index}
                       className="flex items-center justify-between py-2 px-4 border-t last:border-b-0 cursor-pointer hover:bg-gray-50"
-                      onClick={() => handleItemClick(index)}
+                      onClick={() => handleItemClick(item.id)}
                     >
                       <div className="flex items-center gap-2">
                         <Clock className="w-4 h-4 text-gray-400" />
-                        <span className="text-base">{item.nameEnglish}</span>
+                        <span className="text-base">
+                          {item.id}. {item.nameEnglish}
+                        </span>
                       </div>
                       <span className="text-gray-500">${item.priceTotal}</span>
                     </div>

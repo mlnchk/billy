@@ -19,7 +19,7 @@ app.use(`/api/bot/*`, async (c) => {
   const bot = await createBot({
     botToken: c.env.BOT_TOKEN,
     aiService: createAiService(c.env.GOOGLEAI_API_KEY),
-    storageService: createStorageService({ kv: c.env.BILLY }),
+    storageService: createStorageService({ db: c.env.BILLY_DB }),
   });
 
   return webhookCallback(bot, "hono", { timeoutMilliseconds: 100_000 })(c);

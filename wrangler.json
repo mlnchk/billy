@@ -15,10 +15,11 @@
   "assets": {
     "not_found_handling": "single-page-application"
   },
-  "kv_namespaces": [
+  "d1_databases": [
     {
-      "binding": "BILLY",
-      "id": "1948bfa36421488f91d01d633f72dbd8"
+      "binding": "BILLY_DB",
+      "database_name": "billy-db",
+      "database_id": "5d0eb112-7005-4286-9990-f28c68c099b1"
     }
   ]
   /**
