@@ -1,11 +1,5 @@
 import { eq, and, inArray } from "drizzle-orm";
-import {
-  setupDb,
-  bills,
-  billItems,
-  itemAssignments,
-  users,
-} from "../../services/db";
+import { setupDb, billItems, itemAssignments, users } from "../../services/db";
 
 type DB = D1Database;
 
@@ -14,27 +8,15 @@ export function createVoteRepo({ db }: { db: DB }) {
   const drizzleDb = setupDb(db);
 
   return {
-    async storeVote(
-      chatId: number,
-      messageId: number,
-      userId: string,
-      votes: number[],
-    ): Promise<void> {
-      // Get bill first to find bill ID
-      const billData = await drizzleDb
-        .select()
-        .from(bills)
-        .where(
-          and(
-            eq(bills.telegramChatId, chatId.toString()),
-            eq(bills.telegramMessageId, messageId.toString()),
-          ),
-        )
-        .limit(1)
-        .get();
-
-      if (!billData) return;
-
+    async storeVote({
+      billId,
+      userId,
+      votes,
+    }: {
+      billId: number;
+      userId: string;
+      votes: number[];
+    }): Promise<void> {
       // Get or create user
       let userData = await drizzleDb
         .select()
@@ -59,7 +41,7 @@ export function createVoteRepo({ db }: { db: DB }) {
       const itemsForBill = await drizzleDb
         .select({ id: billItems.id })
         .from(billItems)
-        .where(eq(billItems.billId, billData.id))
+        .where(eq(billItems.billId, billId))
         .all();
       const allBillItemIds = itemsForBill.map((item) => item.id);
 
@@ -87,26 +69,8 @@ export function createVoteRepo({ db }: { db: DB }) {
       }
     },
 
-    async getVotes(
-      chatId: number,
-      messageId: number,
-    ): Promise<Map<string, number[]>> {
+    async getVotesByBillId(billId: number): Promise<Map<string, number[]>> {
       const votes = new Map<string, number[]>();
-
-      // FIXME: replace tp billId
-      const billData = await drizzleDb
-        .select()
-        .from(bills)
-        .where(
-          and(
-            eq(bills.telegramChatId, chatId.toString()),
-            eq(bills.telegramMessageId, messageId.toString()),
-          ),
-        )
-        .limit(1)
-        .get();
-
-      if (!billData) return votes;
 
       // Get all item assignments for this bill
       const assignments = await drizzleDb
@@ -118,7 +82,7 @@ export function createVoteRepo({ db }: { db: DB }) {
         .from(itemAssignments)
         .innerJoin(users, eq(itemAssignments.userId, users.id))
         .innerJoin(billItems, eq(itemAssignments.billItemId, billItems.id))
-        .where(eq(billItems.billId, billData.id))
+        .where(eq(billItems.billId, billId))
         .all();
 
       // Group assignments by user

@@ -9,6 +9,26 @@ export function createBillRepo({ db }: { db: DB }) {
   const drizzleDb = setupDb(db);
 
   return {
+    async getBillIdByTelegramChatIdAndMessageId(
+      chatId: number,
+      messageId: number,
+    ): Promise<number | null> {
+      const billData = await drizzleDb
+        .select({ id: bills.id })
+        .from(bills)
+        .where(
+          and(
+            eq(bills.telegramChatId, chatId.toString()),
+            eq(bills.telegramMessageId, messageId.toString()),
+          ),
+        )
+        .limit(1);
+
+      if (!billData[0]) return null;
+
+      return billData[0].id;
+    },
+
     async saveBill(
       chatId: number,
       messageId: number,
@@ -45,10 +65,7 @@ export function createBillRepo({ db }: { db: DB }) {
       return billId;
     },
 
-    async getBill(
-      chatId: number,
-      messageId: number,
-    ): Promise<BillWithItemIds | null> {
+    async getBill(chatId: number, messageId: number) {
       // Find bill by telegram chat ID and message ID
       const billData = await drizzleDb
         .select()
@@ -71,8 +88,9 @@ export function createBillRepo({ db }: { db: DB }) {
         .where(eq(billItems.billId, billData.id))
         .all();
 
-      // Transform DB data to Bill type
+      // TODO: get rid of `BillWithItemIds` type
       const bill: BillWithItemIds = {
+        id: billData.id,
         subtotal: billData.subtotal ?? undefined,
         total: billData.total,
         currency: billData.currency,

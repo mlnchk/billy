@@ -5,6 +5,7 @@ import { formatBillAnalysis, formatCalculation } from "./formatter.ts";
 import { createBillRepo } from "../features/bill/repo.ts";
 import { createVoteRepo } from "../features/vote/repo.ts";
 import { startCommand } from "./commands/start.ts";
+import { createBillService } from "../features/bill/service.ts";
 
 // Set up bot commands
 const commands = [
@@ -30,6 +31,7 @@ export const createBot = async ({
   aiService: AiService;
   db: D1Database;
 }) => {
+  const billService = createBillService({ db, aiService });
   const billRepo = createBillRepo({ db });
   const voteRepo = createVoteRepo({ db });
 
@@ -103,10 +105,11 @@ export const createBot = async ({
       // deleting action message
       await ctx.api.deleteMessage(ctx.chat.id, ctx.message.message_id);
 
-      // Analyze bill
-      const bill = await aiService.analyzeBillImage(imageUrl); // TODO: это может быть долго и функция отомрет, надо делать очередь
-      // Store bill using storage service
-      await billRepo.saveBill(ctx.chat.id, replyToMessage.message_id, bill);
+      const { bill } = await billService.parseAndSaveBill({
+        chatId: ctx.chat.id,
+        messageId: replyToMessage.message_id,
+        imageUrl,
+      });
 
       // Create formatted message
       const summaryMsgText = formatBillAnalysis(bill);
@@ -165,7 +168,7 @@ export const createBot = async ({
       }
 
       // Get all votes using storage service
-      const votes = await voteRepo.getVotes(ctx.chat.id, billMessageId);
+      const votes = await voteRepo.getVotesByBillId(bill.id);
 
       // Get user names for votes
       const votesWithNames = new Map<string, number[]>();
@@ -246,12 +249,11 @@ export const createBot = async ({
       }
 
       // Store vote using storage service
-      await voteRepo.storeVote(
-        ctx.chat.id,
-        billMessageId,
-        ctx.from.id.toString(),
+      await voteRepo.storeVote({
+        billId: bill.id,
+        userId: ctx.from.id.toString(),
         votes,
-      );
+      });
 
       await ctx.api.deleteMessage(ctx.chat.id, ctx.message.message_id);
 
