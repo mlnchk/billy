@@ -47,6 +47,6 @@ export const BillSchema = z.object({
 export type BillItem = z.infer<typeof BillItemSchema>;
 export type Bill = z.infer<typeof BillSchema>;
 
-export type BillWithItemIds = Bill & { items: BillItemWithId[] };
+export type BillWithItemIds = Omit<Bill, "items"> & { items: BillItemWithId[] };
 
 export type BillItemWithId = BillItem & { id: number };

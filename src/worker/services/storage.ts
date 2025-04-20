@@ -146,47 +146,35 @@ export const createStorageService = ({ db }: { db: DB }) => {
       userData = insertedUser;
     }
 
-    // Get items for this bill
+    // Get all item IDs for this bill to ensure complete removal of old votes
     const itemsForBill = await drizzleDb
       .select({ id: billItems.id })
       .from(billItems)
       .where(eq(billItems.billId, billData.id))
       .all();
+    const allBillItemIds = itemsForBill.map((item) => item.id);
 
-    const itemIds = itemsForBill.map((item) => item.id);
-
-    // Delete existing assignments for this user on this bill's items
-    if (itemIds.length > 0) {
-      await drizzleDb
-        .delete(itemAssignments)
-        .where(
-          and(
-            eq(itemAssignments.userId, userData.id),
-            inArray(itemAssignments.billItemId, itemIds),
-          ),
-        );
+    // Delete ALL existing assignments for this user on this bill's items
+    if (allBillItemIds.length > 0) {
+      await drizzleDb.delete(itemAssignments).where(
+        and(
+          eq(itemAssignments.userId, userData.id),
+          // Use all item IDs associated with this bill
+          inArray(itemAssignments.billItemId, allBillItemIds),
+        ),
+      );
     }
 
-    // Create new assignments based on votes
-    if (votes.length > 0 && itemsForBill.length > 0) {
-      // Map vote indices to actual item IDs and prepare batch insert
-      const assignmentValues = votes
-        .map((itemIndex) => {
-          // Ensure index is within bounds
-          if (itemIndex >= 0 && itemIndex < itemsForBill.length) {
-            return {
-              billItemId: itemsForBill[itemIndex].id,
-              userId: userData.id,
-              quantity: 1, // Default to 1, could be adjusted based on requirements
-            };
-          }
-          return null;
-        })
-        .filter((v) => v !== null);
+    // Create new assignments based on votes (item IDs)
+    if (votes.length > 0) {
+      // Map vote item IDs to assignment values
+      const assignmentValues = votes.map((itemId) => ({
+        billItemId: itemId,
+        userId: userData.id,
+        quantity: 1, // Default to 1, could be adjusted based on requirements
+      }));
 
-      if (assignmentValues.length > 0) {
-        await drizzleDb.insert(itemAssignments).values(assignmentValues);
-      }
+      await drizzleDb.insert(itemAssignments).values(assignmentValues);
     }
   }
 
@@ -211,22 +199,6 @@ export const createStorageService = ({ db }: { db: DB }) => {
 
     if (!billData) return votes;
 
-    // Get bill items with their index position
-    const billItemsData = await drizzleDb
-      .select({
-        id: billItems.id,
-        billId: billItems.billId,
-      })
-      .from(billItems)
-      .where(eq(billItems.billId, billData.id))
-      .all();
-
-    // Create a map from item ID to index in the items array
-    const itemIdToIndex = new Map<number, number>();
-    billItemsData.forEach((item, index) => {
-      itemIdToIndex.set(item.id, index);
-    });
-
     // Get all item assignments for this bill
     const assignments = await drizzleDb
       .select({
@@ -244,11 +216,9 @@ export const createStorageService = ({ db }: { db: DB }) => {
     for (const assignment of assignments) {
       if (!assignment.telegramId) continue;
 
-      const itemIndex = itemIdToIndex.get(assignment.billItemId);
-      if (itemIndex === undefined) continue;
-
       const userVotes = votes.get(assignment.telegramId) || [];
-      userVotes.push(itemIndex);
+      // Push the actual item ID
+      userVotes.push(assignment.billItemId);
       votes.set(assignment.telegramId, userVotes);
     }
 

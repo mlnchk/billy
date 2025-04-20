@@ -14,7 +14,7 @@ export const Route = createFileRoute("/app/bill/$chatId/$messageId/")({
   component: RouteComponent,
   loader: async ({ params }) => {
     const { chatId, messageId } = params;
-    console.log(chatId, messageId);
+
     const response = await apiClient.bill[":chatId"][":messageId"].$get({
       param: {
         chatId,
@@ -35,13 +35,17 @@ function RouteComponent() {
   const { chatId, messageId } = Route.useParams();
   const router = useRouter();
 
+  const navigate = Route.useNavigate();
+  // TODO: add default values from loader data
+  const [selectedItemIds, setSelectedItemIds] = useState<number[]>([]);
+
   const { mutate: updateVotes } = useMutation({
     async mutationFn() {
       const response = await apiClient.bill[":chatId"][":messageId"].vote.$post(
         {
           param: { chatId, messageId },
           // TODO: replace my id with the user id from telegram api
-          json: { userId: MY_ID, itemIds: selectedItems },
+          json: { userId: MY_ID, itemIds: selectedItemIds },
         },
       );
 
@@ -57,19 +61,15 @@ function RouteComponent() {
     },
   });
 
-  const navigate = Route.useNavigate();
-  // TODO: add default values from loader data
-  const [selectedItems, setSelectedItems] = useState<number[]>([]);
-
   const toggleItem = (itemId: number) => {
-    setSelectedItems((prev) =>
+    setSelectedItemIds((prev) =>
       prev.includes(itemId)
         ? prev.filter((id) => id !== itemId)
         : [...prev, itemId],
     );
   };
 
-  const hasSelections = selectedItems.length > 0;
+  const hasSelections = selectedItemIds.length > 0;
 
   const handleDone = () => {
     if (hasSelections) {
@@ -95,26 +95,27 @@ function RouteComponent() {
 
           {/* Item List */}
           <div className="flex-1 overflow-auto">
-            {bill.items.map((item, itemIndex) => {
+            {bill.items.map((item) => {
+              const itemId = item.id;
               const voters = Object.entries(votes)
-                .filter(([voterId, votes]) => votes.includes(itemIndex))
+                .filter(([, votes]) => votes.includes(itemId))
                 .map(([voterId]) => voterId);
               return (
                 <div
-                  key={`${item.nameEnglish}-${itemIndex}`}
+                  key={`${item.nameEnglish}-${itemId}`}
                   className="flex items-center justify-between p-4 border-b cursor-pointer"
-                  onClick={() => toggleItem(itemIndex)}
+                  onClick={() => toggleItem(itemId)}
                 >
                   <div className="flex items-center gap-3">
                     <div
                       className={cn(
                         "w-6 h-6 rounded-full border-2 flex items-center justify-center",
-                        selectedItems.includes(itemIndex)
+                        selectedItemIds.includes(itemId)
                           ? "border-blue-400 bg-blue-400"
                           : "border-gray-400",
                       )}
                     >
-                      {selectedItems.includes(itemIndex) && (
+                      {selectedItemIds.includes(itemId) && (
                         <div className="w-4 h-4 rounded-full bg-white" />
                       )}
                     </div>

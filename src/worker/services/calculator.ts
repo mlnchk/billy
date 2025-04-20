@@ -1,7 +1,7 @@
-import { Bill, BillItem, BillItemWithId, BillWithItemIds } from "../types.ts";
+import { BillItem, BillItemWithId, BillWithItemIds } from "../types.ts";
 
 interface ItemVoters {
-  [index: number]: Map<string, number>;
+  [itemId: number]: Map<string, number>;
 }
 
 interface UserSelection {
@@ -32,15 +32,16 @@ export function calculateBillSplit(
   bill: BillWithItemIds,
   votes: Map<string, number[]>,
 ): CalculationResult {
+  console.log("votes", votes);
   const itemVoters: ItemVoters = {};
 
   // First pass: count votes per item per user
   for (const [userName, userVotes] of votes) {
-    userVotes.forEach((index) => {
-      if (!itemVoters[index]) {
-        itemVoters[index] = new Map();
+    userVotes.forEach((itemId) => {
+      if (!itemVoters[itemId]) {
+        itemVoters[itemId] = new Map();
       }
-      const voters = itemVoters[index];
+      const voters = itemVoters[itemId];
       voters.set(userName, (voters.get(userName) || 0) + 1);
     });
   }
@@ -49,23 +50,31 @@ export function calculateBillSplit(
   const userSelections = new Map<string, UserSelection>();
   for (const [userName, userVotes] of votes) {
     const uniqueVotes = [...new Set(userVotes)];
-    const selectedItems = uniqueVotes.map((index) => {
-      const item = bill.items[index - 1];
-      const voters = itemVoters[index];
-      const totalVotes = Array.from(voters.values()).reduce((a, b) => a + b, 0);
-      const userVotes = voters.get(userName) || 0;
+    const selectedItems = uniqueVotes
+      .map((itemId) => {
+        const item = bill.items.find((item) => item.id === itemId);
 
-      const totalItemCost = getTotalItemCost(item);
+        if (!item) return null;
 
-      const proportion = userVotes / totalVotes;
-      const proportionalPrice = totalItemCost * proportion;
+        const voters = itemVoters[itemId];
+        const totalVotes = Array.from(voters.values()).reduce(
+          (a, b) => a + b,
+          0,
+        );
+        const userVotes = voters.get(userName) || 0;
 
-      return {
-        item,
-        proportionalPrice,
-        proportion,
-      };
-    });
+        const totalItemCost = getTotalItemCost(item);
+
+        const proportion = userVotes / totalVotes;
+        const proportionalPrice = totalItemCost * proportion;
+
+        return {
+          item,
+          proportionalPrice,
+          proportion,
+        };
+      })
+      .filter((item) => item !== null);
 
     const userTotal = selectedItems.reduce(
       (sum, itemWithProportion) => sum + itemWithProportion.proportionalPrice,
@@ -80,12 +89,7 @@ export function calculateBillSplit(
   }
 
   // Calculate unvoted items
-  const unvotedItems = bill.items
-    .map((item, index) => ({
-      ...item,
-      id: index + 1,
-    }))
-    .filter((item) => !itemVoters[item.id]);
+  const unvotedItems = bill.items.filter((item) => !itemVoters[item.id]);
 
   return {
     userSelections,
