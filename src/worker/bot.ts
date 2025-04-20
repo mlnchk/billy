@@ -1,8 +1,9 @@
 import { Bot } from "grammy";
 import { AiService } from "./services/ai.ts";
-import type { StorageService } from "./services/storage.ts";
 import { calculateBillSplit } from "./services/calculator.ts";
 import { formatBillAnalysis, formatCalculation } from "./services/formatter.ts";
+import { createBillRepo } from "./features/bill/repo.ts";
+import { createVoteRepo } from "./features/vote/repo.ts";
 
 // Set up bot commands
 const commands = [
@@ -42,12 +43,15 @@ const getWebAppUrl = (chatId: number, messageId: number) =>
 export const createBot = async ({
   botToken,
   aiService,
-  storageService,
+  db,
 }: {
   botToken: string;
   aiService: AiService;
-  storageService: StorageService;
+  db: D1Database;
 }) => {
+  const billRepo = createBillRepo({ db });
+  const voteRepo = createVoteRepo({ db });
+
   // Initialize bot with token from environment
   const bot = new Bot(botToken);
 
@@ -128,11 +132,7 @@ export const createBot = async ({
       // Analyze bill
       const bill = await aiService.analyzeBillImage(imageUrl); // TODO: это может быть долго и функция отомрет, надо делать очередь
       // Store bill using storage service
-      await storageService.storeBill(
-        ctx.chat.id,
-        replyToMessage.message_id,
-        bill,
-      );
+      await billRepo.saveBill(ctx.chat.id, replyToMessage.message_id, bill);
 
       // Create formatted message
       const summaryMsgText = formatBillAnalysis(bill);
@@ -182,7 +182,7 @@ export const createBot = async ({
       }
 
       // Get bill using storage service
-      const bill = await storageService.getBill(ctx.chat.id, billMessageId);
+      const bill = await billRepo.getBill(ctx.chat.id, billMessageId);
       if (!bill) {
         await ctx.reply(
           "This message is not a bill analysis. Please reply to the correct message.",
@@ -191,7 +191,7 @@ export const createBot = async ({
       }
 
       // Get all votes using storage service
-      const votes = await storageService.getVotes(ctx.chat.id, billMessageId);
+      const votes = await voteRepo.getVotes(ctx.chat.id, billMessageId);
 
       // Get user names for votes
       const votesWithNames = new Map<string, number[]>();
@@ -255,7 +255,7 @@ export const createBot = async ({
       if (!billMessageId || !ctx.from) return;
 
       // Get bill using storage service
-      const bill = await storageService.getBill(ctx.chat.id, billMessageId);
+      const bill = await billRepo.getBill(ctx.chat.id, billMessageId);
       if (!bill) return;
 
       // Parse vote message (comma-separated numbers)
@@ -272,7 +272,7 @@ export const createBot = async ({
       }
 
       // Store vote using storage service
-      await storageService.storeVote(
+      await voteRepo.storeVote(
         ctx.chat.id,
         billMessageId,
         ctx.from.id.toString(),

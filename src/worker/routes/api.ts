@@ -2,50 +2,45 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 
-import { createStorageService } from "../services/storage";
 import { z } from "zod";
 import { calculateBillSplit } from "../services/calculator";
+import { createBillRepo } from "../features/bill/repo";
+import { createVoteRepo } from "../features/vote/repo";
 
 export const apiRouter = new Hono<{ Bindings: Env }>()
   .get("/bill/:chatId/:messageId", async (c) => {
-    const storageService = createStorageService({ db: c.env.BILLY_DB });
+    const db = c.env.BILLY_DB;
+    const billRepo = createBillRepo({ db });
+    const voteRepo = createVoteRepo({ db });
+
     const { chatId, messageId } = c.req.param();
 
-    const bill = await storageService.getBill(
-      Number(chatId),
-      Number(messageId),
-    );
+    const bill = await billRepo.getBill(Number(chatId), Number(messageId));
 
     if (!bill) {
       return c.json({ error: "Bill not found" }, 404);
     }
 
     // Get all votes using storage service
-    const votes = await storageService.getVotes(
-      Number(chatId),
-      Number(messageId),
-    );
+    const votes = await voteRepo.getVotes(Number(chatId), Number(messageId));
 
     return c.json({ bill, votes: Object.fromEntries(votes) });
   })
   .get("/bill/:chatId/:messageId/results", async (c) => {
-    const storageService = createStorageService({ db: c.env.BILLY_DB });
+    const db = c.env.BILLY_DB;
+    const billRepo = createBillRepo({ db });
+    const voteRepo = createVoteRepo({ db });
+
     const { chatId, messageId } = c.req.param();
 
-    const bill = await storageService.getBill(
-      Number(chatId),
-      Number(messageId),
-    );
+    const bill = await billRepo.getBill(Number(chatId), Number(messageId));
 
     if (!bill) {
       return c.json({ error: "Bill not found" }, 404);
     }
 
     // Get all votes using storage service
-    const votes = await storageService.getVotes(
-      Number(chatId),
-      Number(messageId),
-    );
+    const votes = await voteRepo.getVotes(Number(chatId), Number(messageId));
 
     const calculationResult = calculateBillSplit(bill, votes);
 
@@ -56,19 +51,19 @@ export const apiRouter = new Hono<{ Bindings: Env }>()
     });
   })
   .get("/bill/:chatId/:messageId/items/:itemId", async (c) => {
-    const storageService = createStorageService({ db: c.env.BILLY_DB });
+    const db = c.env.BILLY_DB;
+    const billRepo = createBillRepo({ db });
+    const voteRepo = createVoteRepo({ db });
+
     const { chatId, messageId, itemId } = c.req.param();
 
-    const billItem = await storageService.getBillItem(Number(itemId));
+    const billItem = await billRepo.getBillItem(Number(itemId));
 
     if (!billItem) {
       return c.json({ error: "Bill item not found" }, 404);
     }
 
-    const votes = await storageService.getVotes(
-      Number(chatId),
-      Number(messageId),
-    );
+    const votes = await voteRepo.getVotes(Number(chatId), Number(messageId));
 
     const userVotes = Array.from(votes.entries())
       // filter voters who voted for this item
@@ -96,11 +91,14 @@ export const apiRouter = new Hono<{ Bindings: Env }>()
       ),
     ),
     async (c) => {
-      const storageService = createStorageService({ db: c.env.BILLY_DB });
+      const db = c.env.BILLY_DB;
+
+      const voteRepo = createVoteRepo({ db });
+
       const { chatId, messageId, itemId } = c.req.param();
       const votes = c.req.valid("json");
 
-      const currentVotes = await storageService.getVotes(
+      const currentVotes = await voteRepo.getVotes(
         Number(chatId),
         Number(messageId),
       );
@@ -116,7 +114,7 @@ export const apiRouter = new Hono<{ Bindings: Env }>()
             ...new Array(vote.share).fill(Number(itemId)),
           ];
 
-          storageService.storeVote(
+          voteRepo.storeVote(
             Number(chatId),
             Number(messageId),
             vote.userId,
@@ -138,11 +136,13 @@ export const apiRouter = new Hono<{ Bindings: Env }>()
       }),
     ),
     async (c) => {
-      const storageService = createStorageService({ db: c.env.BILLY_DB });
+      const db = c.env.BILLY_DB;
+      const voteRepo = createVoteRepo({ db });
+
       const { chatId, messageId } = c.req.param();
       const { userId, itemIds } = c.req.valid("json");
 
-      await storageService.storeVote(
+      await voteRepo.storeVote(
         Number(chatId),
         Number(messageId),
         userId,

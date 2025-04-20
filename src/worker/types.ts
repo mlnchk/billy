@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const BillItemSchema = z.object({
+const BillItemSchema = z.object({
   nameOriginal: z
     .string()
     .describe("Exact name of the item as it appears on the bill."),
