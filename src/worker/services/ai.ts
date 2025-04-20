@@ -1,7 +1,51 @@
 import { generateObject } from "ai";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 
-import { Bill, BillSchema } from "../types.ts";
+import { z } from "zod";
+
+const BillItemSchema = z.object({
+  nameOriginal: z
+    .string()
+    .describe("Exact name of the item as it appears on the bill."),
+  nameEnglish: z.string().describe("English translation of the name."),
+  quantity: z
+    .number()
+    .int()
+    .default(1)
+    .describe("Quantity of the item. Integer."),
+  pricePerUnit: z
+    .number()
+    .nullish()
+    .describe("Price per unit of the item. Float, max 3 decimal places."),
+  priceTotal: z
+    .number()
+    .nullish()
+    .describe("Total price of the item. Float, max 3 decimal places."),
+});
+
+const BillSchema = z.object({
+  items: z.array(BillItemSchema),
+  subtotal: z
+    .number()
+    .nullish()
+    .describe("Sum of all item prices. Float, max 3 decimal places."),
+  total: z
+    .number()
+    .describe("Total price of the bill. Float, max 3 decimal places."),
+  currency: z.string().describe("Currency of the bill. String, e.g. 'THB'"),
+  vat: z
+    .number()
+    .nullish()
+    .describe("VAT amount. Float, max 3 decimal places."),
+  serviceFee: z
+    .number()
+    .nullish()
+    .describe("Service fee. Float, max 3 decimal places."),
+  totalDiscount: z
+    .number()
+    .nullish()
+    .describe("Total discount. Float, max 3 decimal places."),
+});
 
 const SYSTEM_PROMPT = `### Bill Extraction Assistant
 
@@ -46,7 +90,7 @@ export const createAiService = (apiKey: string) => {
     apiKey,
   });
 
-  async function analyzeBillImage(imageUrl: string): Promise<Bill> {
+  async function analyzeBillImage(imageUrl: string) {
     try {
       const { object } = await generateObject({
         model: google("gemini-2.0-flash"),

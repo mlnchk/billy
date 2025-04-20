@@ -105,14 +105,17 @@ export const createBot = async ({
       // deleting action message
       await ctx.api.deleteMessage(ctx.chat.id, ctx.message.message_id);
 
-      const { bill } = await billService.parseAndSaveBill({
+      const { bill, items } = await billService.parseAndSaveBill({
         chatId: ctx.chat.id,
         messageId: replyToMessage.message_id,
         imageUrl,
       });
 
       // Create formatted message
-      const summaryMsgText = formatBillAnalysis(bill);
+      const summaryMsgText = formatBillAnalysis({
+        ...bill,
+        billItems: items,
+      });
 
       await ctx.reply(summaryMsgText, {
         parse_mode: "MarkdownV2",
@@ -239,7 +242,7 @@ export const createBot = async ({
       const votes = ctx.message.text
         .split(",")
         .map((n) => parseInt(n.trim()))
-        .filter((n) => !isNaN(n) && n > 0 && n <= bill.items.length);
+        .filter((n) => !isNaN(n) && n > 0 && n <= bill.billItems.length);
 
       if (votes.length === 0) {
         await ctx.reply(

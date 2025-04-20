@@ -1,6 +1,6 @@
-import { Bill, BillItemWithId } from "../types.ts";
+import { BillItem, BillWithItems } from "../services/db.ts";
 
-function getPricePerUnit(item: BillItemWithId): number {
+function getPricePerUnit(item: BillItem): number {
   if (item.pricePerUnit) {
     return item.pricePerUnit;
   }
@@ -23,7 +23,7 @@ function getCurrencySymbol(currency: string): string {
 }
 
 function formatBillItem(
-  item: BillItemWithId,
+  item: BillItem,
   { currency, withPrice }: { currency: string; withPrice: boolean },
 ): string {
   const paddedIndex = formatTelegramMonospace(String(item.id).padStart(2, "0"));
@@ -48,8 +48,8 @@ function formatBillItem(
   ].join(" • ");
 }
 
-export function formatBillAnalysis(bill: Bill): string {
-  const items = bill.items.map((item, index) => {
+export function formatBillAnalysis(bill: BillWithItems): string {
+  const items = bill.billItems.map((item, index) => {
     return formatBillItem(
       { ...item, id: index + 1 },
       { currency: bill.currency, withPrice: true },
@@ -60,27 +60,11 @@ export function formatBillAnalysis(bill: Bill): string {
   const summaryLines = [];
   const currencySymbol = getCurrencySymbol(bill.currency);
 
-  if (bill.vat) {
-    summaryLines.push(
-      escapeMarkdown(`VAT: ${currencySymbol}${bill.vat.toFixed(2)}`),
-    );
-  }
-  if (bill.serviceFee) {
-    summaryLines.push(
-      escapeMarkdown(`Service: ${currencySymbol}${bill.serviceFee}`),
-    );
-  }
-  if (bill.totalDiscount) {
-    summaryLines.push(
-      escapeMarkdown(`Discount: -${currencySymbol}${bill.totalDiscount}`),
-    );
-  }
-
   if (bill.subtotal) {
     summaryLines.push(
-      `Subtotal: ${currencySymbol}${
-        formatTelegramMonospace(bill.subtotal.toFixed(2))
-      }`,
+      `Subtotal: ${currencySymbol}${formatTelegramMonospace(
+        bill.subtotal.toFixed(2),
+      )}`,
     );
   }
 
@@ -90,17 +74,16 @@ export function formatBillAnalysis(bill: Bill): string {
 
   if (bill.subtotal) {
     summaryLines.push(
-      `Total / Subtotal coefficient: ${
-        formatTelegramMonospace(
-          (bill.total / bill.subtotal).toFixed(3),
-        )
-      }`,
+      `Total / Subtotal coefficient: ${formatTelegramMonospace(
+        (bill.total / bill.subtotal).toFixed(3),
+      )}`,
     );
   }
 
-  const summary = summaryLines.length > 0
-    ? "\n\n" + summaryLines.map((line) => `💰 ${line}`).join("\n")
-    : "";
+  const summary =
+    summaryLines.length > 0
+      ? "\n\n" + summaryLines.map((line) => `💰 ${line}`).join("\n")
+      : "";
 
   return [
     "Dear 🪿and 🦢,\nReply to this message with numbers of your items:\n",
@@ -111,7 +94,7 @@ export function formatBillAnalysis(bill: Bill): string {
 
 interface UserSelection {
   itemsWithProportion: {
-    item: BillItemWithId;
+    item: BillItem;
     proportionalPrice: number;
     proportion: number;
   }[];
@@ -120,7 +103,7 @@ interface UserSelection {
 
 interface CalculationResult {
   userSelections: Map<string, UserSelection>;
-  unvotedItems: BillItemWithId[];
+  unvotedItems: BillItem[];
 }
 
 export function formatCalculation(
@@ -130,32 +113,25 @@ export function formatCalculation(
   let calcMsg = "💰 Bill Calculation\n";
 
   // Per-user summary with items and totals
-  for (
-    const [
-      user,
-      { itemsWithProportion, total },
-    ] of result.userSelections.entries()
-  ) {
-    calcMsg += `\n*${formatTelegramBold(user)}* • ${
-      getCurrencySymbol(currency)
-    }${
-      formatTelegramMonospace(total.toFixed(
-        2,
-      ))
-    }\n`;
+  for (const [
+    user,
+    { itemsWithProportion, total },
+  ] of result.userSelections.entries()) {
+    calcMsg += `\n*${formatTelegramBold(user)}* • ${getCurrencySymbol(
+      currency,
+    )}${formatTelegramMonospace(total.toFixed(2))}\n`;
     itemsWithProportion.forEach((itemWithProportion) => {
-      const proportionString = itemWithProportion.proportion < 1
-        ? escapeMarkdown(
-          ` [${(itemWithProportion.proportion * 100).toFixed(0)}%]`,
-        )
-        : "";
+      const proportionString =
+        itemWithProportion.proportion < 1
+          ? escapeMarkdown(
+              ` [${(itemWithProportion.proportion * 100).toFixed(0)}%]`,
+            )
+          : "";
 
-      calcMsg += `${
-        formatBillItem(itemWithProportion.item, {
-          currency,
-          withPrice: false,
-        })
-      }${proportionString}\n`;
+      calcMsg += `${formatBillItem(itemWithProportion.item, {
+        currency,
+        withPrice: false,
+      })}${proportionString}\n`;
     });
   }
 
@@ -163,11 +139,8 @@ export function formatCalculation(
   if (result.unvotedItems.length > 0) {
     calcMsg += `\n⚠️ *Items without votes*\n`;
     result.unvotedItems.forEach(
-      (
-        item,
-      ) => (calcMsg += `${
-        formatBillItem(item, { currency, withPrice: true })
-      }\n`),
+      (item) =>
+        (calcMsg += `${formatBillItem(item, { currency, withPrice: true })}\n`),
     );
   }
 

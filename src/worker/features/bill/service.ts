@@ -27,14 +27,12 @@ export function createBillService({
     }) {
       const bill = await aiService.analyzeBillImage(params.imageUrl); // TODO: это может быть долго и функция отомрет, надо делать очередь
 
-      const billId = await billRepo.saveBill(
+      return billRepo.saveBill(
         params.chatId,
         params.messageId,
         bill,
+        bill.items,
       );
-
-      // FIXME: return bill from repo, not from ai
-      return { billId, bill };
     },
 
     async getBillWithVotes(params: { chatId: number; messageId: number }) {

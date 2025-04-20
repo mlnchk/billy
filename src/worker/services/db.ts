@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
@@ -8,12 +8,26 @@ export const bills = sqliteTable("bills", {
   subtotal: real("subtotal"),
   total: real("total").notNull(),
   currency: text("currency").notNull(),
-  telegramChatId: text("telegram_chat_id"),
-  telegramMessageId: text("telegram_message_id"),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(sql`(current_timestamp)`),
+
+  // telegram related fields
+  telegramChatId: text("telegram_chat_id"),
+  telegramMessageId: text("telegram_message_id"),
 });
+
+export type Bill = typeof bills.$inferSelect;
+
+export type BillWithItems = Bill & {
+  billItems: BillItem[];
+};
+
+export type BillInsert = typeof bills.$inferInsert;
+
+const billsRelations = relations(bills, ({ many }) => ({
+  billItems: many(billItems),
+}));
 
 // Define the bill items table
 export const billItems = sqliteTable("bill_items", {
@@ -28,12 +42,18 @@ export const billItems = sqliteTable("bill_items", {
   priceTotal: real("price_total"),
 });
 
-// Define the users table to track who's participating in bill splitting
-export const users = sqliteTable("users", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  name: text("name").notNull(),
-  telegramId: text("telegram_id"),
-});
+export type BillItem = typeof billItems.$inferSelect;
+
+export type BillItemInsert = typeof billItems.$inferInsert;
+
+const billItemsRelations = relations(billItems, ({ one, many }) => ({
+  bill: one(bills, {
+    fields: [billItems.billId],
+    references: [bills.id],
+  }),
+  itemAssignments: many(itemAssignments),
+}));
+
 // Define the item_assignments table to track which items are assigned to which users
 export const itemAssignments = sqliteTable("item_assignments", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -46,16 +66,33 @@ export const itemAssignments = sqliteTable("item_assignments", {
   quantity: real("quantity").notNull(),
 });
 
-// DB setup function
-export function setupDb(d1: D1Database) {
-  return drizzle(d1);
-}
+const itemAssignmentsRelations = relations(itemAssignments, ({ one }) => ({
+  billItem: one(billItems, {
+    fields: [itemAssignments.billItemId],
+    references: [billItems.id],
+  }),
+  user: one(users, {
+    fields: [itemAssignments.userId],
+    references: [users.id],
+  }),
+}));
+
+// Define the users table to track who's participating in bill splitting
+export const users = sqliteTable("users", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  telegramId: text("telegram_id"),
+});
+
+const usersRelations = relations(users, ({ many }) => ({
+  itemAssignments: many(itemAssignments),
+}));
 
 // Define relations for type safety
 export type BillsTable = typeof bills;
 export type BillItemsTable = typeof billItems;
-export type UsersTable = typeof users;
 export type ItemAssignmentsTable = typeof itemAssignments;
+export type UsersTable = typeof users;
 
 // Export the DB schema
 export const schema = {
@@ -63,4 +100,14 @@ export const schema = {
   billItems,
   users,
   itemAssignments,
+
+  billsRelations,
+  billItemsRelations,
+  itemAssignmentsRelations,
+  usersRelations,
 };
+
+// DB setup function
+export function setupDb(d1: D1Database) {
+  return drizzle(d1, { schema });
+}

@@ -59,6 +59,7 @@ export const apiRouter = new Hono<{
       return c.json({ error: "Bill not found" }, 404);
     }
 
+    // TODO: move calculation to bill service
     const calculationResult = calculateBillSplit(
       billWithVotes.bill,
       billWithVotes.votes,

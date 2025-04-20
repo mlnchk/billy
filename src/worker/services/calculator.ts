@@ -1,4 +1,4 @@
-import { BillItem, BillItemWithId, BillWithItemIds } from "../types.ts";
+import type { BillItem, BillWithItems } from "./db.ts";
 
 interface ItemVoters {
   [itemId: number]: Map<string, number>;
@@ -6,7 +6,7 @@ interface ItemVoters {
 
 interface UserSelection {
   itemsWithProportion: {
-    item: BillItemWithId;
+    item: BillItem;
     proportionalPrice: number;
     proportion: number;
   }[];
@@ -15,7 +15,7 @@ interface UserSelection {
 
 interface CalculationResult {
   userSelections: Map<string, UserSelection>;
-  unvotedItems: BillItemWithId[];
+  unvotedItems: BillItem[];
 }
 
 function getTotalItemCost(item: BillItem): number {
@@ -29,7 +29,7 @@ function getTotalItemCost(item: BillItem): number {
 }
 
 export function calculateBillSplit(
-  bill: BillWithItemIds,
+  bill: BillWithItems,
   votes: Map<string, number[]>,
 ): CalculationResult {
   console.log("votes", votes);
@@ -52,7 +52,7 @@ export function calculateBillSplit(
     const uniqueVotes = [...new Set(userVotes)];
     const selectedItems = uniqueVotes
       .map((itemId) => {
-        const item = bill.items.find((item) => item.id === itemId);
+        const item = bill.billItems.find((item) => item.id === itemId);
 
         if (!item) return null;
 
@@ -89,7 +89,7 @@ export function calculateBillSplit(
   }
 
   // Calculate unvoted items
-  const unvotedItems = bill.items.filter((item) => !itemVoters[item.id]);
+  const unvotedItems = bill.billItems.filter((item) => !itemVoters[item.id]);
 
   return {
     userSelections,
