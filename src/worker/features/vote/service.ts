@@ -16,6 +16,7 @@ export function createVoteService({ db }: { db: D1Database }) {
 
     // TODO: move logic from voteRepo here
     async storeVotes(params: {
+      billId: number;
       votes: {
         itemId: number;
         userId: number;
@@ -33,6 +34,12 @@ export function createVoteService({ db }: { db: D1Database }) {
           })),
         )
         .onConflictDoNothing();
+
+      // remove old votes
+      await voteRepo.deleteVotesByBillId({
+        billId: params.billId,
+        userIds: params.votes.map((vote) => vote.userId),
+      });
 
       const votes = params.votes.map((vote) => ({
         billItemId: vote.itemId,
