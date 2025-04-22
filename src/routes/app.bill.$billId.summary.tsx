@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-export const Route = createFileRoute("/app/bill/$chatId/$messageId/summary")({
+export const Route = createFileRoute("/app/bill/$billId/summary")({
   component: RouteComponent,
 });
 

@@ -12,10 +12,10 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as IndexImport } from './routes/index'
-import { Route as AppBillChatIdMessageIdIndexImport } from './routes/app.bill.$chatId.$messageId.index'
-import { Route as AppBillChatIdMessageIdSummaryImport } from './routes/app.bill.$chatId.$messageId.summary'
-import { Route as AppBillChatIdMessageIdResultsImport } from './routes/app.bill.$chatId.$messageId.results'
-import { Route as AppBillChatIdMessageIdItemItemIdImport } from './routes/app.bill.$chatId.$messageId.item.$itemId'
+import { Route as AppBillBillIdIndexImport } from './routes/app.bill.$billId.index'
+import { Route as AppBillBillIdSummaryImport } from './routes/app.bill.$billId.summary'
+import { Route as AppBillBillIdResultsImport } from './routes/app.bill.$billId.results'
+import { Route as AppBillBillIdItemItemIdImport } from './routes/app.bill.$billId.item.$itemId'
 
 // Create/Update Routes
 
@@ -25,33 +25,29 @@ const IndexRoute = IndexImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const AppBillChatIdMessageIdIndexRoute =
-  AppBillChatIdMessageIdIndexImport.update({
-    id: '/app/bill/$chatId/$messageId/',
-    path: '/app/bill/$chatId/$messageId/',
-    getParentRoute: () => rootRoute,
-  } as any)
+const AppBillBillIdIndexRoute = AppBillBillIdIndexImport.update({
+  id: '/app/bill/$billId/',
+  path: '/app/bill/$billId/',
+  getParentRoute: () => rootRoute,
+} as any)
 
-const AppBillChatIdMessageIdSummaryRoute =
-  AppBillChatIdMessageIdSummaryImport.update({
-    id: '/app/bill/$chatId/$messageId/summary',
-    path: '/app/bill/$chatId/$messageId/summary',
-    getParentRoute: () => rootRoute,
-  } as any)
+const AppBillBillIdSummaryRoute = AppBillBillIdSummaryImport.update({
+  id: '/app/bill/$billId/summary',
+  path: '/app/bill/$billId/summary',
+  getParentRoute: () => rootRoute,
+} as any)
 
-const AppBillChatIdMessageIdResultsRoute =
-  AppBillChatIdMessageIdResultsImport.update({
-    id: '/app/bill/$chatId/$messageId/results',
-    path: '/app/bill/$chatId/$messageId/results',
-    getParentRoute: () => rootRoute,
-  } as any)
+const AppBillBillIdResultsRoute = AppBillBillIdResultsImport.update({
+  id: '/app/bill/$billId/results',
+  path: '/app/bill/$billId/results',
+  getParentRoute: () => rootRoute,
+} as any)
 
-const AppBillChatIdMessageIdItemItemIdRoute =
-  AppBillChatIdMessageIdItemItemIdImport.update({
-    id: '/app/bill/$chatId/$messageId/item/$itemId',
-    path: '/app/bill/$chatId/$messageId/item/$itemId',
-    getParentRoute: () => rootRoute,
-  } as any)
+const AppBillBillIdItemItemIdRoute = AppBillBillIdItemItemIdImport.update({
+  id: '/app/bill/$billId/item/$itemId',
+  path: '/app/bill/$billId/item/$itemId',
+  getParentRoute: () => rootRoute,
+} as any)
 
 // Populate the FileRoutesByPath interface
 
@@ -64,32 +60,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
-    '/app/bill/$chatId/$messageId/results': {
-      id: '/app/bill/$chatId/$messageId/results'
-      path: '/app/bill/$chatId/$messageId/results'
-      fullPath: '/app/bill/$chatId/$messageId/results'
-      preLoaderRoute: typeof AppBillChatIdMessageIdResultsImport
+    '/app/bill/$billId/results': {
+      id: '/app/bill/$billId/results'
+      path: '/app/bill/$billId/results'
+      fullPath: '/app/bill/$billId/results'
+      preLoaderRoute: typeof AppBillBillIdResultsImport
       parentRoute: typeof rootRoute
     }
-    '/app/bill/$chatId/$messageId/summary': {
-      id: '/app/bill/$chatId/$messageId/summary'
-      path: '/app/bill/$chatId/$messageId/summary'
-      fullPath: '/app/bill/$chatId/$messageId/summary'
-      preLoaderRoute: typeof AppBillChatIdMessageIdSummaryImport
+    '/app/bill/$billId/summary': {
+      id: '/app/bill/$billId/summary'
+      path: '/app/bill/$billId/summary'
+      fullPath: '/app/bill/$billId/summary'
+      preLoaderRoute: typeof AppBillBillIdSummaryImport
       parentRoute: typeof rootRoute
     }
-    '/app/bill/$chatId/$messageId/': {
-      id: '/app/bill/$chatId/$messageId/'
-      path: '/app/bill/$chatId/$messageId'
-      fullPath: '/app/bill/$chatId/$messageId'
-      preLoaderRoute: typeof AppBillChatIdMessageIdIndexImport
+    '/app/bill/$billId/': {
+      id: '/app/bill/$billId/'
+      path: '/app/bill/$billId'
+      fullPath: '/app/bill/$billId'
+      preLoaderRoute: typeof AppBillBillIdIndexImport
       parentRoute: typeof rootRoute
     }
-    '/app/bill/$chatId/$messageId/item/$itemId': {
-      id: '/app/bill/$chatId/$messageId/item/$itemId'
-      path: '/app/bill/$chatId/$messageId/item/$itemId'
-      fullPath: '/app/bill/$chatId/$messageId/item/$itemId'
-      preLoaderRoute: typeof AppBillChatIdMessageIdItemItemIdImport
+    '/app/bill/$billId/item/$itemId': {
+      id: '/app/bill/$billId/item/$itemId'
+      path: '/app/bill/$billId/item/$itemId'
+      fullPath: '/app/bill/$billId/item/$itemId'
+      preLoaderRoute: typeof AppBillBillIdItemItemIdImport
       parentRoute: typeof rootRoute
     }
   }
@@ -99,68 +95,68 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/app/bill/$chatId/$messageId/results': typeof AppBillChatIdMessageIdResultsRoute
-  '/app/bill/$chatId/$messageId/summary': typeof AppBillChatIdMessageIdSummaryRoute
-  '/app/bill/$chatId/$messageId': typeof AppBillChatIdMessageIdIndexRoute
-  '/app/bill/$chatId/$messageId/item/$itemId': typeof AppBillChatIdMessageIdItemItemIdRoute
+  '/app/bill/$billId/results': typeof AppBillBillIdResultsRoute
+  '/app/bill/$billId/summary': typeof AppBillBillIdSummaryRoute
+  '/app/bill/$billId': typeof AppBillBillIdIndexRoute
+  '/app/bill/$billId/item/$itemId': typeof AppBillBillIdItemItemIdRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/app/bill/$chatId/$messageId/results': typeof AppBillChatIdMessageIdResultsRoute
-  '/app/bill/$chatId/$messageId/summary': typeof AppBillChatIdMessageIdSummaryRoute
-  '/app/bill/$chatId/$messageId': typeof AppBillChatIdMessageIdIndexRoute
-  '/app/bill/$chatId/$messageId/item/$itemId': typeof AppBillChatIdMessageIdItemItemIdRoute
+  '/app/bill/$billId/results': typeof AppBillBillIdResultsRoute
+  '/app/bill/$billId/summary': typeof AppBillBillIdSummaryRoute
+  '/app/bill/$billId': typeof AppBillBillIdIndexRoute
+  '/app/bill/$billId/item/$itemId': typeof AppBillBillIdItemItemIdRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
-  '/app/bill/$chatId/$messageId/results': typeof AppBillChatIdMessageIdResultsRoute
-  '/app/bill/$chatId/$messageId/summary': typeof AppBillChatIdMessageIdSummaryRoute
-  '/app/bill/$chatId/$messageId/': typeof AppBillChatIdMessageIdIndexRoute
-  '/app/bill/$chatId/$messageId/item/$itemId': typeof AppBillChatIdMessageIdItemItemIdRoute
+  '/app/bill/$billId/results': typeof AppBillBillIdResultsRoute
+  '/app/bill/$billId/summary': typeof AppBillBillIdSummaryRoute
+  '/app/bill/$billId/': typeof AppBillBillIdIndexRoute
+  '/app/bill/$billId/item/$itemId': typeof AppBillBillIdItemItemIdRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/app/bill/$chatId/$messageId/results'
-    | '/app/bill/$chatId/$messageId/summary'
-    | '/app/bill/$chatId/$messageId'
-    | '/app/bill/$chatId/$messageId/item/$itemId'
+    | '/app/bill/$billId/results'
+    | '/app/bill/$billId/summary'
+    | '/app/bill/$billId'
+    | '/app/bill/$billId/item/$itemId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/app/bill/$chatId/$messageId/results'
-    | '/app/bill/$chatId/$messageId/summary'
-    | '/app/bill/$chatId/$messageId'
-    | '/app/bill/$chatId/$messageId/item/$itemId'
+    | '/app/bill/$billId/results'
+    | '/app/bill/$billId/summary'
+    | '/app/bill/$billId'
+    | '/app/bill/$billId/item/$itemId'
   id:
     | '__root__'
     | '/'
-    | '/app/bill/$chatId/$messageId/results'
-    | '/app/bill/$chatId/$messageId/summary'
-    | '/app/bill/$chatId/$messageId/'
-    | '/app/bill/$chatId/$messageId/item/$itemId'
+    | '/app/bill/$billId/results'
+    | '/app/bill/$billId/summary'
+    | '/app/bill/$billId/'
+    | '/app/bill/$billId/item/$itemId'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AppBillChatIdMessageIdResultsRoute: typeof AppBillChatIdMessageIdResultsRoute
-  AppBillChatIdMessageIdSummaryRoute: typeof AppBillChatIdMessageIdSummaryRoute
-  AppBillChatIdMessageIdIndexRoute: typeof AppBillChatIdMessageIdIndexRoute
-  AppBillChatIdMessageIdItemItemIdRoute: typeof AppBillChatIdMessageIdItemItemIdRoute
+  AppBillBillIdResultsRoute: typeof AppBillBillIdResultsRoute
+  AppBillBillIdSummaryRoute: typeof AppBillBillIdSummaryRoute
+  AppBillBillIdIndexRoute: typeof AppBillBillIdIndexRoute
+  AppBillBillIdItemItemIdRoute: typeof AppBillBillIdItemItemIdRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AppBillChatIdMessageIdResultsRoute: AppBillChatIdMessageIdResultsRoute,
-  AppBillChatIdMessageIdSummaryRoute: AppBillChatIdMessageIdSummaryRoute,
-  AppBillChatIdMessageIdIndexRoute: AppBillChatIdMessageIdIndexRoute,
-  AppBillChatIdMessageIdItemItemIdRoute: AppBillChatIdMessageIdItemItemIdRoute,
+  AppBillBillIdResultsRoute: AppBillBillIdResultsRoute,
+  AppBillBillIdSummaryRoute: AppBillBillIdSummaryRoute,
+  AppBillBillIdIndexRoute: AppBillBillIdIndexRoute,
+  AppBillBillIdItemItemIdRoute: AppBillBillIdItemItemIdRoute,
 }
 
 export const routeTree = rootRoute
@@ -174,26 +170,26 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/app/bill/$chatId/$messageId/results",
-        "/app/bill/$chatId/$messageId/summary",
-        "/app/bill/$chatId/$messageId/",
-        "/app/bill/$chatId/$messageId/item/$itemId"
+        "/app/bill/$billId/results",
+        "/app/bill/$billId/summary",
+        "/app/bill/$billId/",
+        "/app/bill/$billId/item/$itemId"
       ]
     },
     "/": {
       "filePath": "index.tsx"
     },
-    "/app/bill/$chatId/$messageId/results": {
-      "filePath": "app.bill.$chatId.$messageId.results.tsx"
+    "/app/bill/$billId/results": {
+      "filePath": "app.bill.$billId.results.tsx"
     },
-    "/app/bill/$chatId/$messageId/summary": {
-      "filePath": "app.bill.$chatId.$messageId.summary.tsx"
+    "/app/bill/$billId/summary": {
+      "filePath": "app.bill.$billId.summary.tsx"
     },
-    "/app/bill/$chatId/$messageId/": {
-      "filePath": "app.bill.$chatId.$messageId.index.tsx"
+    "/app/bill/$billId/": {
+      "filePath": "app.bill.$billId.index.tsx"
     },
-    "/app/bill/$chatId/$messageId/item/$itemId": {
-      "filePath": "app.bill.$chatId.$messageId.item.$itemId.tsx"
+    "/app/bill/$billId/item/$itemId": {
+      "filePath": "app.bill.$billId.item.$itemId.tsx"
     }
   }
 }

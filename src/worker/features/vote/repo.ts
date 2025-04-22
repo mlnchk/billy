@@ -17,6 +17,7 @@ export function createVoteRepo({ db }: { db: DB }) {
       }[];
     }) {
       if (votes.length <= 0) return;
+      console.log("votes", votes);
 
       await drizzleDb.insert(itemAssignments).values(votes);
     },

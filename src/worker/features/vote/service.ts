@@ -1,9 +1,12 @@
 // import { createBillRepo } from "../bill/repo";
 import { createVoteRepo } from "./repo";
+import { setupDb, users } from "../../services/db";
 
 export function createVoteService({ db }: { db: D1Database }) {
   // const billRepo = createBillRepo({ db });
   const voteRepo = createVoteRepo({ db });
+
+  const drizzleDb = setupDb(db);
 
   return {
     // TODO: move logic from voteRepo here
@@ -19,6 +22,18 @@ export function createVoteService({ db }: { db: D1Database }) {
         quantity: number;
       }[];
     }) {
+      // FIXME: refactor working with users
+      await drizzleDb
+        .insert(users)
+        .values(
+          params.votes.map((vote) => ({
+            name: vote.userId.toString(),
+            id: vote.userId,
+            telegramId: vote.userId.toString(),
+          })),
+        )
+        .onConflictDoNothing();
+
       const votes = params.votes.map((vote) => ({
         billItemId: vote.itemId,
         userId: vote.userId,

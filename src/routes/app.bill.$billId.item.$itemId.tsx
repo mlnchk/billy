@@ -23,17 +23,13 @@ import { apiClient } from "@/lib/api";
 import { getColorFromId } from "@/lib/colors";
 import { useMutation } from "@tanstack/react-query";
 
-export const Route = createFileRoute(
-  "/app/bill/$chatId/$messageId/item/$itemId",
-)({
+export const Route = createFileRoute("/app/bill/$billId/item/$itemId")({
   component: RouteComponent,
   loader: async ({ params }) => {
-    const { chatId, messageId, itemId } = params;
+    const { billId, itemId } = params;
 
-    const response = await apiClient.bill[":chatId"][":messageId"].items[
-      ":itemId"
-    ].$get({
-      param: { chatId, messageId, itemId },
+    const response = await apiClient.bill[":billId"].items[":itemId"].$get({
+      param: { billId, itemId },
     });
 
     if (!response.ok) {
@@ -46,7 +42,7 @@ export const Route = createFileRoute(
 
 export default function RouteComponent() {
   const navigate = Route.useNavigate();
-  const { chatId, messageId, itemId } = Route.useParams();
+  const { billId, itemId } = Route.useParams();
   const { billItem, userVotes } = Route.useLoaderData();
   const [voters, setVoters] = useState(userVotes);
   const [showAddPeople, setShowAddPeople] = useState(false);
@@ -54,12 +50,10 @@ export default function RouteComponent() {
 
   const { mutateAsync: updateVotes } = useMutation({
     mutationFn: async () => {
-      await apiClient.bill[":chatId"][":messageId"].items[":itemId"].edit.$post(
-        {
-          param: { chatId, messageId, itemId },
-          json: voters,
-        },
-      );
+      await apiClient.bill[":billId"].items[":itemId"].edit.$post({
+        param: { billId, itemId },
+        json: voters,
+      });
     },
     onSuccess: () => {
       router.invalidate();
@@ -74,7 +68,7 @@ export default function RouteComponent() {
   }));
 
   // Handle share increment/decrement
-  const updateShares = (userId: string, increment: boolean) => {
+  const updateShares = (userId: number, increment: boolean) => {
     setVoters((prev) =>
       prev.map((voter) => {
         console.log(voter.userId, userId);
@@ -89,7 +83,7 @@ export default function RouteComponent() {
     );
   };
 
-  const addPerson = (personId: string) => {
+  const addPerson = () => {
     // const person = additionalPeople.find((p) => p.id.toString() === personId);
     // if (person) {
     //   setVoters((prev) => [...prev, { ...person, shares: 1 }]);
@@ -195,7 +189,10 @@ export default function RouteComponent() {
                             !voters.some((v) => v.userId === person.userId),
                         )
                         .map((person) => (
-                          <SelectItem key={person.userId} value={person.userId}>
+                          <SelectItem
+                            key={person.userId}
+                            value={person.userId.toString()}
+                          >
                             <div className="flex items-center gap-2">
                               <div
                                 className={`w-3 h-3 rounded-full`}

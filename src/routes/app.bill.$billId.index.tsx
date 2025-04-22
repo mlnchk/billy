@@ -10,15 +10,14 @@ import { getColorFromId } from "@/lib/colors";
 import { Avatar } from "@/components/ui/avatar";
 import { MY_ID } from "@/lib/constants";
 
-export const Route = createFileRoute("/app/bill/$chatId/$messageId/")({
+export const Route = createFileRoute("/app/bill/$billId/")({
   component: RouteComponent,
   loader: async ({ params }) => {
-    const { chatId, messageId } = params;
+    const { billId } = params;
 
-    const response = await apiClient.bill[":chatId"][":messageId"].$get({
+    const response = await apiClient.bill[":billId"].$get({
       param: {
-        chatId,
-        messageId,
+        billId,
       },
     });
 
@@ -32,7 +31,7 @@ export const Route = createFileRoute("/app/bill/$chatId/$messageId/")({
 
 function RouteComponent() {
   const { bill, votes } = Route.useLoaderData();
-  const { chatId, messageId } = Route.useParams();
+  const { billId } = Route.useParams();
   const router = useRouter();
 
   const navigate = Route.useNavigate();
@@ -41,13 +40,11 @@ function RouteComponent() {
 
   const { mutate: updateVotes } = useMutation({
     async mutationFn() {
-      const response = await apiClient.bill[":chatId"][":messageId"].vote.$post(
-        {
-          param: { chatId, messageId },
-          // TODO: replace my id with the user id from telegram api
-          json: { userId: MY_ID, itemIds: selectedItemIds },
-        },
-      );
+      const response = await apiClient.bill[":billId"].vote.$post({
+        param: { billId },
+        // TODO: replace my id with the user id from telegram api
+        json: { userId: MY_ID, itemIds: selectedItemIds },
+      });
 
       if (!response.ok) {
         throw new Error("Failed to update votes");
@@ -95,11 +92,11 @@ function RouteComponent() {
 
           {/* Item List */}
           <div className="flex-1 overflow-auto">
-            {bill.items.map((item) => {
+            {bill.billItems.map((item) => {
               const itemId = item.id;
-              const voters = Object.entries(votes)
-                .filter(([, votes]) => votes.includes(itemId))
-                .map(([voterId]) => voterId);
+              const voters = votes
+                .filter((vote) => vote.billItemId === itemId)
+                .map((vote) => vote.userId);
               return (
                 <div
                   key={`${item.nameEnglish}-${itemId}`}

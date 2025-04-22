@@ -13,15 +13,13 @@ import { apiClient } from "@/lib/api";
 import { getColorFromId } from "@/lib/colors";
 import { MY_ID } from "@/lib/constants";
 
-export const Route = createFileRoute("/app/bill/$chatId/$messageId/results")({
+export const Route = createFileRoute("/app/bill/$billId/results")({
   component: RouteComponent,
   loader: async ({ params }) => {
-    const { chatId, messageId } = params;
-    const response = await apiClient.bill[":chatId"][":messageId"].results.$get(
-      {
-        param: { chatId, messageId },
-      },
-    );
+    const { billId } = params;
+    const response = await apiClient.bill[":billId"].results.$get({
+      param: { billId },
+    });
 
     if (!response.ok) {
       throw new Error("Failed to fetch results");
@@ -114,7 +112,7 @@ export default function RouteComponent() {
             {/* Other Users Section */}
             <Accordion type="multiple" className="w-full">
               {Object.entries(userSelections)
-                .filter(([userId]) => userId !== MY_ID)
+                .filter(([userId]) => userId !== MY_ID.toString())
                 .map(([userId, user]) => (
                   <AccordionItem
                     key={userId}
