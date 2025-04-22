@@ -1,8 +1,8 @@
-import { createBillRepo } from "../bill/repo";
+// import { createBillRepo } from "../bill/repo";
 import { createVoteRepo } from "./repo";
 
 export function createVoteService({ db }: { db: D1Database }) {
-  const billRepo = createBillRepo({ db });
+  // const billRepo = createBillRepo({ db });
   const voteRepo = createVoteRepo({ db });
 
   return {
@@ -12,12 +12,20 @@ export function createVoteService({ db }: { db: D1Database }) {
     },
 
     // TODO: move logic from voteRepo here
-    async storeVote(params: {
-      billId: number;
-      userId: string;
-      votes: number[];
+    async storeVotes(params: {
+      votes: {
+        itemId: number;
+        userId: number;
+        quantity: number;
+      }[];
     }) {
-      return voteRepo.storeVote(params);
+      const votes = params.votes.map((vote) => ({
+        billItemId: vote.itemId,
+        userId: vote.userId,
+        quantity: vote.quantity,
+      }));
+
+      return voteRepo.storeVotes({ votes });
     },
   };
 }

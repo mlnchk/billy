@@ -1,8 +1,6 @@
 import type { BillItem, BillWithItems } from "./db.ts";
 
-interface ItemVoters {
-  [itemId: number]: Map<string, number>;
-}
+type UserId = number;
 
 interface UserSelection {
   itemsWithProportion: {
@@ -14,7 +12,7 @@ interface UserSelection {
 }
 
 interface CalculationResult {
-  userSelections: Map<string, UserSelection>;
+  userSelections: Map<UserId, UserSelection>;
   unvotedItems: BillItem[];
 }
 
@@ -30,66 +28,48 @@ function getTotalItemCost(item: BillItem): number {
 
 export function calculateBillSplit(
   bill: BillWithItems,
-  votes: Map<string, number[]>,
+  votes: { userId: UserId; itemId: number; quantity: number }[],
 ): CalculationResult {
-  console.log("votes", votes);
-  const itemVoters: ItemVoters = {};
-
-  // First pass: count votes per item per user
-  for (const [userName, userVotes] of votes) {
-    userVotes.forEach((itemId) => {
-      if (!itemVoters[itemId]) {
-        itemVoters[itemId] = new Map();
-      }
-      const voters = itemVoters[itemId];
-      voters.set(userName, (voters.get(userName) || 0) + 1);
-    });
-  }
-
   // Second pass: calculate proportional costs
-  const userSelections = new Map<string, UserSelection>();
-  for (const [userName, userVotes] of votes) {
-    const uniqueVotes = [...new Set(userVotes)];
-    const selectedItems = uniqueVotes
-      .map((itemId) => {
-        const item = bill.billItems.find((item) => item.id === itemId);
+  const userSelections = new Map<UserId, UserSelection>();
 
-        if (!item) return null;
+  // Find unvoted items
+  const unvotedItems = bill.billItems.filter((item) => {
+    return !votes.some((vote) => vote.itemId === item.id);
+  });
 
-        const voters = itemVoters[itemId];
-        const totalVotes = Array.from(voters.values()).reduce(
-          (a, b) => a + b,
-          0,
-        );
-        const userVotes = voters.get(userName) || 0;
+  // Process each vote and build user selections
+  for (const vote of votes) {
+    const { userId, itemId, quantity } = vote;
 
-        const totalItemCost = getTotalItemCost(item);
+    // Find the corresponding item
+    const item = bill.billItems.find((item) => item.id === itemId);
+    if (!item) continue;
 
-        const proportion = userVotes / totalVotes;
-        const proportionalPrice = totalItemCost * proportion;
+    // Initialize user selection if not exists
+    if (!userSelections.has(userId)) {
+      userSelections.set(userId, {
+        itemsWithProportion: [],
+        total: 0,
+      });
+    }
 
-        return {
-          item,
-          proportionalPrice,
-          proportion,
-        };
-      })
-      .filter((item) => item !== null);
+    const userSelection = userSelections.get(userId)!;
+    const itemCost = getTotalItemCost(item);
 
-    const userTotal = selectedItems.reduce(
-      (sum, itemWithProportion) => sum + itemWithProportion.proportionalPrice,
-      0,
-    );
+    // Calculate proportional cost based on quantity
+    const proportion = quantity / item.quantity;
+    const proportionalPrice = itemCost * proportion;
 
-    userSelections.set(userName, {
-      itemsWithProportion: selectedItems,
-      // total: userTotal + getAdditionalCosts(userTotal),
-      total: userTotal,
+    // Add to user's selections
+    userSelection.itemsWithProportion.push({
+      item,
+      proportionalPrice,
+      proportion,
     });
-  }
 
-  // Calculate unvoted items
-  const unvotedItems = bill.billItems.filter((item) => !itemVoters[item.id]);
+    userSelection.total += proportionalPrice;
+  }
 
   return {
     userSelections,

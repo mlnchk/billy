@@ -1,8 +1,6 @@
 import { Bot } from "grammy";
 import { AiService } from "../services/ai.ts";
-import { calculateBillSplit } from "../services/calculator.ts";
 import { formatBillAnalysis, formatCalculation } from "./formatter.ts";
-import { createBillRepo } from "../features/bill/repo.ts";
 import { createVoteRepo } from "../features/vote/repo.ts";
 import { startCommand } from "./commands/start.ts";
 import { createBillService } from "../features/bill/service.ts";
@@ -32,7 +30,6 @@ export const createBot = async ({
   db: D1Database;
 }) => {
   const billService = createBillService({ db, aiService });
-  const billRepo = createBillRepo({ db });
   const voteRepo = createVoteRepo({ db });
 
   // Initialize bot with token from environment
@@ -162,36 +159,27 @@ export const createBot = async ({
       }
 
       // Get bill using storage service
-      const bill = await billRepo.getBill(ctx.chat.id, billMessageId);
-      if (!bill) {
+      const billId = await billService.getBillIdByTelegramChatIdAndMessageId(
+        ctx.chat.id,
+        billMessageId,
+      );
+      if (!billId) {
         await ctx.reply(
-          "This message is not a bill analysis. Please reply to the correct message.",
+          "No bill found. Please reply to the correct bill analysis message.",
         );
         return;
       }
 
-      // Get all votes using storage service
-      const votes = await voteRepo.getVotesByBillId(bill.id);
-
-      // Get user names for votes
-      const votesWithNames = new Map<string, number[]>();
-      for (const [userId, userVotes] of votes) {
-        const userInfo = await ctx.api.getChatMember(
-          ctx.chat!.id,
-          parseInt(userId),
+      // Calculate bill split
+      const calculationResult = await billService.getBillSplit(billId);
+      if (!calculationResult) {
+        await ctx.reply(
+          "❌ Sorry, something went wrong while calculating the split.",
         );
-        votesWithNames.set(userInfo.user.first_name, userVotes);
+        return;
       }
 
-      // Calculate bill split
-      const calculationResult = calculateBillSplit(bill, votesWithNames);
-
-      // Format the result
-      const calcMsg = formatCalculation(calculationResult, bill.currency);
-
-      // for some reason chat_id is `-1002490229132` when in reality it is `2490229132` (-100 in the beginning)
-      // link ref: https://t.me/c/2490229132/168?thread=168
-      // const linkToThread = `https://t.me/c/${ctx.message?.chat.id}/${ctx.message?.message_thread_id}?thread=${ctx.message?.message_thread_id}`;
+      const calcMsg = formatCalculation(calculationResult, "FIX_CURRENCY");
 
       await ctx.reply(calcMsg, {
         parse_mode: "MarkdownV2",
@@ -235,14 +223,19 @@ export const createBot = async ({
       if (!billMessageId || !ctx.from) return;
 
       // Get bill using storage service
-      const bill = await billRepo.getBill(ctx.chat.id, billMessageId);
-      if (!bill) return;
+      const billId = await billService.getBillIdByTelegramChatIdAndMessageId(
+        ctx.chat.id,
+        billMessageId,
+      );
+      if (!billId) {
+        await ctx.reply(
+          "No bill found. Please reply to the correct bill analysis message.",
+        );
+        return;
+      }
 
       // Parse vote message (comma-separated numbers)
-      const votes = ctx.message.text
-        .split(",")
-        .map((n) => parseInt(n.trim()))
-        .filter((n) => !isNaN(n) && n > 0 && n <= bill.billItems.length);
+      const votes = ctx.message.text.split(",").map((n) => parseInt(n.trim()));
 
       if (votes.length === 0) {
         await ctx.reply(
@@ -252,8 +245,8 @@ export const createBot = async ({
       }
 
       // Store vote using storage service
-      await voteRepo.storeVote({
-        billId: bill.id,
+      await voteRepo.storeVotes({
+        billId,
         userId: ctx.from.id.toString(),
         votes,
       });

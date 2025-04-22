@@ -1,6 +1,7 @@
 import { createVoteRepo } from "../vote/repo";
 import { createBillRepo } from "./repo";
 import { AiService } from "../../services/ai";
+import { calculateBillSplit } from "../../services/calculator";
 
 export function createBillService({
   db,
@@ -20,6 +21,13 @@ export function createBillService({
   const voteRepo = createVoteRepo({ db });
 
   return {
+    async getBillIdByTelegramChatIdAndMessageId(
+      chatId: number,
+      messageId: number,
+    ) {
+      return billRepo.getBillIdByTelegramChatIdAndMessageId(chatId, messageId);
+    },
+
     async parseAndSaveBill(params: {
       chatId: number;
       messageId: number;
@@ -35,8 +43,8 @@ export function createBillService({
       );
     },
 
-    async getBillWithVotes(params: { chatId: number; messageId: number }) {
-      const bill = await billRepo.getBill(params.chatId, params.messageId);
+    async getBillWithVotes(params: { billId: number }) {
+      const bill = await billRepo.getBillWithItems(params.billId);
 
       if (!bill) {
         return null;
@@ -45,6 +53,30 @@ export function createBillService({
       const votes = await voteRepo.getVotesByBillId(bill.id);
 
       return { bill, votes };
+    },
+
+    async getBillItem(itemId: number) {
+      return billRepo.getBillItem(itemId);
+    },
+
+    async getBillSplit(billId: number) {
+      // FIXME: i don't like `this` here
+      const billWithVotes = await this.getBillWithVotes({
+        billId,
+      });
+
+      if (!billWithVotes) {
+        return null;
+      }
+
+      return calculateBillSplit(
+        billWithVotes.bill,
+        billWithVotes.votes.map((vote) => ({
+          userId: vote.userId,
+          itemId: vote.billItemId,
+          quantity: vote.quantity,
+        })),
+      );
     },
   };
 }

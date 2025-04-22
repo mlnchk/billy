@@ -9,7 +9,6 @@ import {
 
 type DB = D1Database;
 
-// FIXME: go to definition do not work with this kind of factory
 export function createBillRepo({ db }: { db: DB }) {
   const drizzleDb = setupDb(db);
 
@@ -72,12 +71,9 @@ export function createBillRepo({ db }: { db: DB }) {
       return { bill: insertedBill, items: insertedItems };
     },
 
-    async getBill(chatId: number, messageId: number) {
+    async getBillWithItems(billId: number) {
       return drizzleDb.query.bills.findFirst({
-        where: and(
-          eq(bills.telegramChatId, chatId.toString()),
-          eq(bills.telegramMessageId, messageId.toString()),
-        ),
+        where: eq(bills.id, billId),
         with: {
           billItems: true,
         },

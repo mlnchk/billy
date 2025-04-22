@@ -1,18 +1,14 @@
+import { z } from "zod";
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 
-import { z } from "zod";
-import { calculateBillSplit } from "../services/calculator";
-import { createBillRepo } from "../features/bill/repo";
 import { createBillService } from "../features/bill/service";
 import { createAiService } from "../services/ai";
 import { createVoteService } from "../features/vote/service";
 
-// TODO: use :billId as a path param and just get bill id in bot using chatId and messageId
 export const apiRouter = new Hono<{
   Bindings: Env;
   Variables: {
-    billRepo: ReturnType<typeof createBillRepo>;
     billService: ReturnType<typeof createBillService>;
     voteService: ReturnType<typeof createVoteService>;
   };
@@ -21,23 +17,20 @@ export const apiRouter = new Hono<{
     const db = c.env.BILLY_DB;
     const aiService = createAiService(c.env.GOOGLEAI_API_KEY);
 
-    const billRepo = createBillRepo({ db });
     const billService = createBillService({ db, aiService });
     const voteService = createVoteService({ db });
 
-    c.set("billRepo", billRepo);
     c.set("billService", billService);
     c.set("voteService", voteService);
 
     await next();
   })
-  .get("/bill/:chatId/:messageId", async (c) => {
+  .get("/bill/:billId", async (c) => {
     const billService = c.get("billService");
-    const { chatId, messageId } = c.req.param();
+    const { billId } = c.req.param();
 
     const billWithVotes = await billService.getBillWithVotes({
-      chatId: Number(chatId),
-      messageId: Number(messageId),
+      billId: Number(billId),
     });
 
     if (!billWithVotes) {
@@ -46,24 +39,15 @@ export const apiRouter = new Hono<{
 
     return c.json(billWithVotes);
   })
-  .get("/bill/:chatId/:messageId/results", async (c) => {
+  .get("/bill/:billId/results", async (c) => {
     const billService = c.get("billService");
-    const { chatId, messageId } = c.req.param();
-
-    const billWithVotes = await billService.getBillWithVotes({
-      chatId: Number(chatId),
-      messageId: Number(messageId),
-    });
-
-    if (!billWithVotes) {
-      return c.json({ error: "Bill not found" }, 404);
-    }
+    const { billId } = c.req.param();
 
     // TODO: move calculation to bill service
-    const calculationResult = calculateBillSplit(
-      billWithVotes.bill,
-      billWithVotes.votes,
-    );
+    const calculationResult = await billService.getBillSplit(Number(billId));
+    if (!calculationResult) {
+      return c.json({ error: "Bill not found" }, 404);
+    }
 
     return c.json({
       ...calculationResult,
@@ -71,32 +55,23 @@ export const apiRouter = new Hono<{
       userSelections: Object.fromEntries(calculationResult.userSelections),
     });
   })
-  .get("/bill/:chatId/:messageId/items/:itemId", async (c) => {
-    const billRepo = c.get("billRepo");
+  .get("/bill/:billId/items/:itemId", async (c) => {
+    const billService = c.get("billService");
     const voteService = c.get("voteService");
+    const { billId, itemId } = c.req.param();
 
-    const { chatId, messageId, itemId } = c.req.param();
-
-    const bill = await billRepo.getBill(Number(chatId), Number(messageId));
-
-    if (!bill) {
-      return c.json({ error: "Bill not found" }, 404);
-    }
-
-    const billItem = await billRepo.getBillItem(Number(itemId));
-
+    const billItem = await billService.getBillItem(Number(itemId));
     if (!billItem) {
       return c.json({ error: "Bill item not found" }, 404);
     }
 
-    const votes = await voteService.getVotesByBillId(bill.id);
-
-    const userVotes = Array.from(votes.entries())
+    const votes = await voteService.getVotesByBillId(Number(billId));
+    const userVotes = votes
       // filter voters who voted for this item
-      .map(([userId, userVotes]) => {
+      .map(({ userId, quantity }) => {
         return {
           userId,
-          share: userVotes.filter((vote) => vote === Number(itemId)).length,
+          share: quantity,
         };
       });
 
@@ -106,76 +81,52 @@ export const apiRouter = new Hono<{
     });
   })
   .post(
-    "/bill/:chatId/:messageId/items/:itemId/edit",
+    "/bill/:billId/items/:itemId/edit",
     zValidator(
       "json",
       z.array(
         z.object({
-          userId: z.string(),
+          userId: z.number(), // TODO: get user id from context
           share: z.number(),
         }),
       ),
     ),
     async (c) => {
       const voteService = c.get("voteService");
-      const billRepo = c.get("billRepo");
-      const { chatId, messageId, itemId } = c.req.param();
+      const { itemId } = c.req.param();
       const votes = c.req.valid("json");
 
-      const bill = await billRepo.getBill(Number(chatId), Number(messageId));
-
-      if (!bill) {
-        return c.json({ error: "Bill not found" }, 404);
-      }
-
-      const currentVotes = await voteService.getVotesByBillId(bill.id);
-
-      await Promise.all(
-        votes.map((vote) => {
-          const currentUserVotes = currentVotes.get(vote.userId) || [];
-
-          const newUserVotes = [
-            ...currentUserVotes.filter((v) => v !== Number(itemId)),
-            ...new Array(vote.share).fill(Number(itemId)),
-          ];
-
-          voteService.storeVote({
-            billId: bill.id,
-            userId: vote.userId,
-            votes: newUserVotes,
-          });
-        }),
-      );
+      await voteService.storeVotes({
+        votes: votes.map((vote) => ({
+          userId: vote.userId,
+          itemId: Number(itemId),
+          quantity: vote.share,
+        })),
+      });
 
       return c.json({ ok: true });
     },
   )
   .post(
-    "/bill/:chatId/:messageId/vote",
+    "/bill/:billId/vote",
     zValidator(
       "json",
       z.object({
-        userId: z.string(),
+        userId: z.number(), // TODO: get user id from context
         itemIds: z.array(z.number()),
       }),
     ),
     async (c) => {
       const voteService = c.get("voteService");
-      const billRepo = c.get("billRepo");
 
-      const { chatId, messageId } = c.req.param();
       const { userId, itemIds } = c.req.valid("json");
 
-      const bill = await billRepo.getBill(Number(chatId), Number(messageId));
-
-      if (!bill) {
-        return c.json({ error: "Bill not found" }, 404);
-      }
-
-      await voteService.storeVote({
-        billId: bill.id,
-        userId,
-        votes: itemIds,
+      await voteService.storeVotes({
+        votes: itemIds.map((itemId) => ({
+          userId,
+          itemId,
+          quantity: 1,
+        })),
       });
 
       return c.json({ ok: true });
