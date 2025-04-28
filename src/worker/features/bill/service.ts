@@ -110,6 +110,7 @@ export function createBillService({
       return {
         ...calculationResult,
         userSelections: Object.fromEntries(calculationResult.userSelections),
+        bill: billWithVotes.bill,
       };
     },
   };

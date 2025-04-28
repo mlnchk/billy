@@ -5,58 +5,47 @@ import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { apiClient } from "@/lib/api";
+import { getColorFromId } from "@/lib/colors";
 
 export const Route = createFileRoute("/app/bill/$billId/summary")({
   component: RouteComponent,
+  loader: async ({ params }) => {
+    // TODO: get bill with results
+    const { billId } = params;
+    const response = await apiClient.bill[":billId"].results.$get({
+      param: { billId },
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch results");
+    }
+
+    return response.json();
+  },
 });
-
-// Define consistent colors
-const COLORS = {
-  DAN: "bg-green-200",
-  KSENDJI: "bg-yellow-200",
-  ILYA: "bg-pink-200",
-};
-
-// Sample data for users and their shares
-const initialUsers = [
-  { id: 1, name: "Dan", color: COLORS.DAN, amount: 15 },
-  { id: 2, name: "Ksendji", color: COLORS.KSENDJI, amount: 13 },
-  { id: 3, name: "Ilya", color: COLORS.ILYA, amount: 13 },
-];
 
 export default function RouteComponent() {
   const navigate = Route.useNavigate();
-  const [users, setUsers] = useState(initialUsers);
-  const [coefficient, setCoefficient] = useState<string>("1.00");
-  const [originalTotal, setOriginalTotal] = useState(0);
-  const [adjustedTotal, setAdjustedTotal] = useState(0);
+  const { userSelections, bill } = Route.useLoaderData();
+  const defaultCoefficient = bill.subtotal ? bill.total / bill.subtotal : 1;
 
-  // Calculate totals on component mount and when users change
-  useEffect(() => {
-    const total = users.reduce((sum, user) => sum + user.amount, 0);
-    setOriginalTotal(total);
-    updateAdjustedTotal(total, coefficient);
-  }, [users, coefficient]);
+  const [coefficient, setCoefficient] = useState(defaultCoefficient);
 
-  // Update the adjusted total when coefficient changes
-  const updateAdjustedTotal = (total: number, coef: string) => {
-    const coefValue = Number.parseFloat(coef) || 1;
-    setAdjustedTotal(total * coefValue);
-  };
+  const adjustedTotal = bill.subtotal
+    ? bill.subtotal * coefficient
+    : bill.total;
 
   // Handle coefficient change
   const handleCoefficientChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    // Allow only numbers and a single decimal point
-    if (/^(\d*\.?\d*)$/.test(value) || value === "") {
-      setCoefficient(value);
-      updateAdjustedTotal(originalTotal, value);
-    }
+    const value = parseFloat(e.target.value) || 1;
+
+    setCoefficient(value);
   };
 
   // Handle edit button click
   const handleEdit = () => {
-    navigate({ to: "../" });
+    navigate({ to: ".." });
   };
 
   return (
@@ -75,19 +64,19 @@ export default function RouteComponent() {
       <div className="flex-1 overflow-auto p-4">
         {/* Users list */}
         <div className="space-y-4 mb-8">
-          {users.map((user) => (
-            <div key={user.id} className="flex items-center justify-between">
+          {Object.entries(userSelections).map(([userId, user]) => (
+            <div key={userId} className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Avatar className={`w-6 h-6 ${user.color} avatar-transition`}>
+                <Avatar
+                  color={getColorFromId(Number(userId))}
+                  className={`w-6 h-6 avatar-transition`}
+                >
                   <AvatarFallback className="text-xs"></AvatarFallback>
                 </Avatar>
-                <span className="text-lg">{user.name}</span>
+                <span className="text-lg">{userId}</span>
               </div>
               <span className="font-medium">
-                $
-                {(user.amount * (Number.parseFloat(coefficient) || 1)).toFixed(
-                  2,
-                )}
+                ${(user.total * coefficient).toFixed(2)}
               </span>
             </div>
           ))}
@@ -102,7 +91,9 @@ export default function RouteComponent() {
             <div className="w-24">
               <Input
                 id="coefficient"
-                type="text"
+                type="number"
+                step="0.001"
+                placeholder="1.00"
                 value={coefficient}
                 onChange={handleCoefficientChange}
                 className="text-right"
@@ -110,12 +101,22 @@ export default function RouteComponent() {
             </div>
           </div>
 
+          {/* Subtotal */}
+          <div className="flex items-center justify-between">
+            <span className="text-lg">Subtotal</span>
+            <span className="text-lg">${bill.subtotal?.toFixed(2)}</span>
+          </div>
+
+          {/* Adjusted subtotal */}
+          <div className="flex items-center justify-between">
+            <span className="text-lg">Adjusted subtotal</span>
+            <span className="text-lg">${adjustedTotal.toFixed(2)}</span>
+          </div>
+
           {/* Total */}
           <div className="flex items-center justify-between">
             <span className="text-xl font-bold">Total</span>
-            <span className="text-xl font-bold">
-              ${adjustedTotal.toFixed(2)}
-            </span>
+            <span className="text-xl font-bold">${bill.total.toFixed(2)}</span>
           </div>
         </div>
       </div>
