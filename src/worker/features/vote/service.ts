@@ -1,12 +1,7 @@
-// import { createBillRepo } from "../bill/repo";
 import { createVoteRepo } from "./repo";
-import { setupDb, users } from "../../services/db";
 
 export function createVoteService({ db }: { db: D1Database }) {
-  // const billRepo = createBillRepo({ db });
   const voteRepo = createVoteRepo({ db });
-
-  const drizzleDb = setupDb(db);
 
   return {
     // TODO: move logic from voteRepo here
@@ -14,8 +9,12 @@ export function createVoteService({ db }: { db: D1Database }) {
       return voteRepo.getVotesByBillId(billId);
     },
 
-    // TODO: move logic from voteRepo here
-    async storeVotes(params: {
+    /**
+     * Stores votes for a given bill.
+     * Assumes users have already been resolved to their numeric IDs.
+     * Deletes previous votes for the involved users on this bill before inserting new ones.
+     */
+    async castVotes(params: {
       billId: number;
       votes: {
         itemId: number;
@@ -23,31 +22,24 @@ export function createVoteService({ db }: { db: D1Database }) {
         quantity: number;
       }[];
     }) {
-      // FIXME: refactor working with users
-      await drizzleDb
-        .insert(users)
-        .values(
-          params.votes.map((vote) => ({
-            name: vote.userId.toString(),
-            id: vote.userId,
-            telegramId: vote.userId.toString(),
-          })),
-        )
-        .onConflictDoNothing();
+      const userIds = [...new Set(params.votes.map((vote) => vote.userId))];
 
-      // remove old votes
       await voteRepo.deleteVotesByBillId({
         billId: params.billId,
-        userIds: params.votes.map((vote) => vote.userId),
+        userIds: userIds,
       });
 
-      const votes = params.votes.map((vote) => ({
+      if (params.votes.length === 0) {
+        return;
+      }
+
+      const votesToInsert = params.votes.map((vote) => ({
         billItemId: vote.itemId,
         userId: vote.userId,
         quantity: vote.quantity,
       }));
 
-      return voteRepo.storeVotes({ votes });
+      return voteRepo.storeVotes({ votes: votesToInsert });
     },
   };
 }

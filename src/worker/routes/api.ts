@@ -5,23 +5,36 @@ import { zValidator } from "@hono/zod-validator";
 import { createBillService } from "../features/bill/service";
 import { createAiService } from "../services/ai";
 import { createVoteService } from "../features/vote/service";
+import { createUserService } from "../features/user/service";
+
+import { MY_ID } from "../../lib/constants";
 
 export const apiRouter = new Hono<{
   Bindings: Env;
   Variables: {
     billService: ReturnType<typeof createBillService>;
     voteService: ReturnType<typeof createVoteService>;
+    userService: ReturnType<typeof createUserService>;
+    userId: number;
   };
 }>()
   .use(async (c, next) => {
     const db = c.env.BILLY_DB;
     const aiService = createAiService(c.env.GOOGLEAI_API_KEY);
 
+    const userService = createUserService({ db });
     const billService = createBillService({ db, aiService });
     const voteService = createVoteService({ db });
 
     c.set("billService", billService);
     c.set("voteService", voteService);
+    c.set("userService", userService);
+
+    await next();
+  })
+  .use(async (c, next) => {
+    // TODO: get user id from token or telegram id
+    c.set("userId", MY_ID);
 
     await next();
   })
@@ -86,7 +99,7 @@ export const apiRouter = new Hono<{
       "json",
       z.array(
         z.object({
-          userId: z.number(), // TODO: get user id from context
+          userId: z.number(),
           share: z.number(),
         }),
       ),
@@ -96,7 +109,7 @@ export const apiRouter = new Hono<{
       const { billId, itemId } = c.req.param();
       const votes = c.req.valid("json");
 
-      await voteService.storeVotes({
+      await voteService.castVotes({
         billId: Number(billId),
         votes: votes.map((vote) => ({
           userId: vote.userId,
@@ -113,16 +126,17 @@ export const apiRouter = new Hono<{
     zValidator(
       "json",
       z.object({
-        userId: z.number(), // TODO: get user id from context
         itemIds: z.array(z.number()),
       }),
     ),
     async (c) => {
       const voteService = c.get("voteService");
+      const userId = c.get("userId");
 
-      const { userId, itemIds } = c.req.valid("json");
+      const { itemIds } = c.req.valid("json");
       const { billId } = c.req.param();
-      await voteService.storeVotes({
+
+      await voteService.castVotes({
         billId: Number(billId),
         votes: itemIds.map((itemId) => ({
           userId,
