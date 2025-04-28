@@ -2,6 +2,13 @@ import { createVoteRepo } from "../vote/repo";
 import { createBillRepo } from "./repo";
 import { AiService } from "../../services/ai";
 import { calculateBillSplit } from "../../services/calculator";
+import type { BillItem } from "../../services/db"; // Import BillItem type if needed
+
+// Define the structure expected by the API route
+interface BillItemDetailsResponse {
+  billItem: BillItem | null;
+  userVotes: { userId: number; share: number }[];
+}
 
 export function createBillService({
   db,
@@ -57,6 +64,27 @@ export function createBillService({
 
     async getBillItem(itemId: number) {
       return billRepo.getBillItem(itemId);
+    },
+
+    async getBillItemWithVotes(params: {
+      itemId: number;
+    }): Promise<BillItemDetailsResponse | null> {
+      const billItem = await billRepo.getBillItem(params.itemId);
+      if (!billItem) {
+        return null;
+      }
+
+      const userVotesForItem = await voteRepo.getVotesByBillItemId(
+        params.itemId,
+      );
+
+      return {
+        billItem: billItem,
+        userVotes: userVotesForItem.map(({ userId, quantity }) => ({
+          userId,
+          share: quantity,
+        })),
+      };
     },
 
     async getBillSplit(billId: number) {

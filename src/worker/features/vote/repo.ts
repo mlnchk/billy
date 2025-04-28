@@ -65,5 +65,16 @@ export function createVoteRepo({ db }: { db: DB }) {
         .where(eq(billItems.billId, billId))
         .all();
     },
+
+    async getVotesByBillItemId(billItemId: number) {
+      return drizzleDb
+        .select({
+          userId: itemAssignments.userId,
+          quantity: itemAssignments.quantity,
+        })
+        .from(itemAssignments)
+        .where(eq(itemAssignments.billItemId, billItemId))
+        .all();
+    },
   };
 }

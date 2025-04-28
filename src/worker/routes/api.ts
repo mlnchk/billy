@@ -70,28 +70,17 @@ export const apiRouter = new Hono<{
   })
   .get("/bill/:billId/items/:itemId", async (c) => {
     const billService = c.get("billService");
-    const voteService = c.get("voteService");
-    const { billId, itemId } = c.req.param();
+    const { itemId } = c.req.param();
 
-    const billItem = await billService.getBillItem(Number(itemId));
-    if (!billItem) {
-      return c.json({ error: "Bill item not found" }, 404);
+    const billItemWithVotes = await billService.getBillItemWithVotes({
+      itemId: Number(itemId),
+    });
+
+    if (!billItemWithVotes) {
+      return c.json({ error: "Bill item details not found" }, 404);
     }
 
-    const votes = await voteService.getVotesByBillId(Number(billId));
-    const userVotes = votes
-      // filter voters who voted for this item
-      .map(({ userId, quantity }) => {
-        return {
-          userId,
-          share: quantity,
-        };
-      });
-
-    return c.json({
-      billItem,
-      userVotes,
-    });
+    return c.json(billItemWithVotes);
   })
   .post(
     "/bill/:billId/items/:itemId/edit",
