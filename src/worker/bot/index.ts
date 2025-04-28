@@ -1,9 +1,10 @@
 import { Bot } from "grammy";
 import { AiService } from "../services/ai.ts";
 import { formatBillAnalysis, formatCalculation } from "./formatter.ts";
-import { createVoteRepo } from "../features/vote/repo.ts";
 import { startCommand } from "./commands/start.ts";
 import { createBillService } from "../features/bill/service.ts";
+import { createUserService } from "../features/user/service.ts";
+import { createVoteService } from "../features/vote/service.ts";
 
 // Set up bot commands
 const commands = [
@@ -30,7 +31,8 @@ export const createBot = async ({
   db: D1Database;
 }) => {
   const billService = createBillService({ db, aiService });
-  const voteRepo = createVoteRepo({ db });
+  const voteService = createVoteService({ db });
+  const userService = createUserService({ db });
 
   // Initialize bot with token from environment
   const bot = new Bot(botToken);
@@ -40,37 +42,6 @@ export const createBot = async ({
 
   bot.command("start", startCommand);
   bot.command("help", startCommand);
-
-  bot.command("webapp", async (ctx) => {
-    const chatId = ctx.chat.id;
-    // const messageId = 335;
-    if (!ctx.message?.reply_to_message) {
-      return ctx.reply("Please reply to a message with /webapp");
-    }
-
-    const replyToMessage = ctx.message.reply_to_message;
-    const messageId = replyToMessage.message_id;
-
-    return ctx.reply(
-      "Here is the webapp\n\n" + getWebAppUrl(chatId, messageId),
-      {
-        parse_mode: "Markdown",
-        // reply_parameters: { message_id: messageId },
-        reply_markup: {
-          inline_keyboard: [
-            [
-              {
-                text: "Open Bill in Web App",
-                web_app: {
-                  url: getWebAppUrl(chatId, messageId),
-                },
-              },
-            ],
-          ],
-        },
-      },
-    );
-  });
 
   // Handle photo messages with /parse command
   bot.command("parse", async (ctx) => {
@@ -179,7 +150,15 @@ export const createBot = async ({
         return;
       }
 
-      const calcMsg = formatCalculation(calculationResult, "FIX_CURRENCY");
+      const calcMsg = formatCalculation(
+        {
+          unvotedItems: calculationResult.unvotedItems,
+          userSelections: new Map(
+            Object.entries(calculationResult.userSelections),
+          ),
+        },
+        "FIX_CURRENCY", // TODO: get currency from bill
+      );
 
       await ctx.reply(calcMsg, {
         parse_mode: "MarkdownV2",
@@ -244,11 +223,17 @@ export const createBot = async ({
         return;
       }
 
-      // Store vote using storage service
-      await voteRepo.storeVotes({
+      const { id: userId } = await userService.findOrCreateUserByTelegramId(
+        ctx.from.id.toString(),
+      );
+
+      await voteService.castVotes({
         billId,
-        userId: ctx.from.id.toString(),
-        votes,
+        votes: votes.map((itemId) => ({
+          userId,
+          itemId,
+          quantity: 1, // TODO: quantity should be inferred from array item count
+        })),
       });
 
       await ctx.api.deleteMessage(ctx.chat.id, ctx.message.message_id);
