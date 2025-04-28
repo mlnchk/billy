@@ -56,17 +56,15 @@ export const apiRouter = new Hono<{
     const billService = c.get("billService");
     const { billId } = c.req.param();
 
-    // TODO: move calculation to bill service
     const calculationResult = await billService.getBillSplit(Number(billId));
     if (!calculationResult) {
-      return c.json({ error: "Bill not found" }, 404);
+      return c.json(
+        { error: "Bill not found or could not be calculated" },
+        404,
+      );
     }
 
-    return c.json({
-      ...calculationResult,
-      // TODO: add superjson
-      userSelections: Object.fromEntries(calculationResult.userSelections),
-    });
+    return c.json(calculationResult);
   })
   .get("/bill/:billId/items/:itemId", async (c) => {
     const billService = c.get("billService");

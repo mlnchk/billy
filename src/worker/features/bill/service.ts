@@ -97,7 +97,7 @@ export function createBillService({
         return null;
       }
 
-      return calculateBillSplit(
+      const calculationResult = calculateBillSplit(
         billWithVotes.bill,
         billWithVotes.votes.map((vote) => ({
           userId: vote.userId,
@@ -105,6 +105,12 @@ export function createBillService({
           quantity: vote.quantity,
         })),
       );
+
+      // Perform the final mapping here
+      return {
+        ...calculationResult,
+        userSelections: Object.fromEntries(calculationResult.userSelections),
+      };
     },
   };
 }
