@@ -1,6 +1,13 @@
 import { relations, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
-import { integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
+
+import {
+  integer,
+  real,
+  sqliteTable,
+  text,
+  unique,
+} from "drizzle-orm/sqlite-core";
 
 // Define the bills table
 export const bills = sqliteTable("bills", {
@@ -55,16 +62,22 @@ const billItemsRelations = relations(billItems, ({ one, many }) => ({
 }));
 
 // Define the item_assignments table to track which items are assigned to which users
-export const itemAssignments = sqliteTable("item_assignments", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  billItemId: integer("bill_item_id")
-    .notNull()
-    .references(() => billItems.id, { onDelete: "cascade" }),
-  userId: integer("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  quantity: real("quantity").notNull(),
-});
+export const itemAssignments = sqliteTable(
+  "item_assignments",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    billItemId: integer("bill_item_id")
+      .notNull()
+      .references(() => billItems.id, { onDelete: "cascade" }),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    quantity: real("quantity").notNull(),
+  },
+  (t) => ({
+    userId_billItemId: unique().on(t.userId, t.billItemId),
+  }),
+);
 
 const itemAssignmentsRelations = relations(itemAssignments, ({ one }) => ({
   billItem: one(billItems, {

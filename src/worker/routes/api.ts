@@ -93,14 +93,13 @@ export const apiRouter = new Hono<{
     ),
     async (c) => {
       const voteService = c.get("voteService");
-      const { billId, itemId } = c.req.param();
+      const { itemId } = c.req.param();
       const votes = c.req.valid("json");
 
-      await voteService.castVotes({
-        billId: Number(billId),
+      await voteService.updateVotesForBillItem({
+        billItemId: Number(itemId),
         votes: votes.map((vote) => ({
           userId: vote.userId,
-          itemId: Number(itemId),
           quantity: vote.share,
         })),
       });
@@ -123,7 +122,7 @@ export const apiRouter = new Hono<{
       const { itemIds } = c.req.valid("json");
       const { billId } = c.req.param();
 
-      await voteService.castVotes({
+      await voteService.voteForBill({
         billId: Number(billId),
         votes: itemIds.map((itemId) => ({
           userId,

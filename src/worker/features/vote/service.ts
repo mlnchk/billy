@@ -14,7 +14,7 @@ export function createVoteService({ db }: { db: D1Database }) {
      * Assumes users have already been resolved to their numeric IDs.
      * Deletes previous votes for the involved users on this bill before inserting new ones.
      */
-    async castVotes(params: {
+    async voteForBill(params: {
       billId: number;
       votes: {
         itemId: number;
@@ -39,7 +39,23 @@ export function createVoteService({ db }: { db: D1Database }) {
         quantity: vote.quantity,
       }));
 
-      return voteRepo.storeVotes({ votes: votesToInsert });
+      return voteRepo.insertVotes({ votes: votesToInsert });
+    },
+
+    async updateVotesForBillItem(params: {
+      billItemId: number;
+      votes: {
+        userId: number;
+        quantity: number;
+      }[];
+    }) {
+      const votesToInsert = params.votes.map((vote) => ({
+        billItemId: params.billItemId,
+        userId: vote.userId,
+        quantity: vote.quantity,
+      }));
+
+      return voteRepo.insertVotes({ votes: votesToInsert });
     },
   };
 }

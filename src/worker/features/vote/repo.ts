@@ -1,4 +1,4 @@
-import { eq, inArray, and } from "drizzle-orm";
+import { eq, inArray, and, sql } from "drizzle-orm";
 import { setupDb, billItems, itemAssignments, users } from "../../services/db";
 
 type DB = D1Database;
@@ -36,7 +36,7 @@ export function createVoteRepo({ db }: { db: DB }) {
         );
     },
 
-    async storeVotes({
+    async insertVotes({
       votes,
     }: {
       votes: {
@@ -46,9 +46,16 @@ export function createVoteRepo({ db }: { db: DB }) {
       }[];
     }) {
       if (votes.length <= 0) return;
-      console.log("votes", votes);
 
-      await drizzleDb.insert(itemAssignments).values(votes);
+      await drizzleDb
+        .insert(itemAssignments)
+        .values(votes)
+        .onConflictDoUpdate({
+          target: [itemAssignments.userId, itemAssignments.billItemId],
+          set: {
+            quantity: sql`excluded.quantity`,
+          },
+        });
     },
 
     async getVotesByBillId(billId: number) {

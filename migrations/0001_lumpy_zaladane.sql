@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX `item_assignments_user_id_bill_item_id_unique` ON `item_assignments` (`user_id`,`bill_item_id`);

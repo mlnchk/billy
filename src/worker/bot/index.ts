@@ -227,7 +227,7 @@ export const createBot = async ({
         ctx.from.id.toString(),
       );
 
-      await voteService.castVotes({
+      await voteService.voteForBill({
         billId,
         votes: votes.map((itemId) => ({
           userId,
