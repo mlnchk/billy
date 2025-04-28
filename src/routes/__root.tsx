@@ -5,5 +5,13 @@ export const Route = createRootRoute({
 });
 
 function RootComponent() {
-  return <Outlet />;
+  return (
+    <div className="flex flex-col min-h-screen bg-white">
+      <main className="flex-1 max-w-md mx-auto w-full flex flex-col p-4">
+        <div className="border rounded-md overflow-hidden flex flex-col h-full">
+          <Outlet />
+        </div>
+      </main>
+    </div>
+  );
 }

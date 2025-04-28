@@ -60,81 +60,72 @@ export default function RouteComponent() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-white">
-      <main className="flex-1 max-w-md mx-auto w-full flex flex-col">
-        <div className="border rounded-md overflow-hidden flex flex-col h-full">
-          {/* Header */}
-          <div className="p-4 border-b flex justify-between items-center">
-            <h1 className="text-2xl font-bold title-transition">Result</h1>
-            <button
-              onClick={handleEdit}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              Edit
-            </button>
-          </div>
+    <>
+      {/* Header */}
+      <div className="p-4 border-b flex justify-between items-center">
+        <h1 className="text-2xl font-bold title-transition">Result</h1>
+        <button
+          onClick={handleEdit}
+          className="text-gray-400 hover:text-gray-600"
+        >
+          Edit
+        </button>
+      </div>
 
-          <div className="flex-1 overflow-auto p-4">
-            {/* Users list */}
-            <div className="space-y-4 mb-8">
-              {users.map((user) => (
-                <div
-                  key={user.id}
-                  className="flex items-center justify-between"
-                >
-                  <div className="flex items-center gap-3">
-                    <Avatar
-                      className={`w-6 h-6 ${user.color} avatar-transition`}
-                    >
-                      <AvatarFallback className="text-xs"></AvatarFallback>
-                    </Avatar>
-                    <span className="text-lg">{user.name}</span>
-                  </div>
-                  <span className="font-medium">
-                    $
-                    {(
-                      user.amount * (Number.parseFloat(coefficient) || 1)
-                    ).toFixed(2)}
-                  </span>
-                </div>
-              ))}
+      <div className="flex-1 overflow-auto p-4">
+        {/* Users list */}
+        <div className="space-y-4 mb-8">
+          {users.map((user) => (
+            <div key={user.id} className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Avatar className={`w-6 h-6 ${user.color} avatar-transition`}>
+                  <AvatarFallback className="text-xs"></AvatarFallback>
+                </Avatar>
+                <span className="text-lg">{user.name}</span>
+              </div>
+              <span className="font-medium">
+                $
+                {(user.amount * (Number.parseFloat(coefficient) || 1)).toFixed(
+                  2,
+                )}
+              </span>
             </div>
+          ))}
+        </div>
 
-            {/* Coefficient input */}
-            <div className="mt-auto pt-8">
-              <div className="flex items-center justify-between mb-4">
-                <label htmlFor="coefficient" className="text-lg">
-                  Add coef?
-                </label>
-                <div className="w-24">
-                  <Input
-                    id="coefficient"
-                    type="text"
-                    value={coefficient}
-                    onChange={handleCoefficientChange}
-                    className="text-right"
-                  />
-                </div>
-              </div>
-
-              {/* Total */}
-              <div className="flex items-center justify-between">
-                <span className="text-xl font-bold">Total</span>
-                <span className="text-xl font-bold">
-                  ${adjustedTotal.toFixed(2)}
-                </span>
-              </div>
+        {/* Coefficient input */}
+        <div className="mt-auto pt-8">
+          <div className="flex items-center justify-between mb-4">
+            <label htmlFor="coefficient" className="text-lg">
+              Add coef?
+            </label>
+            <div className="w-24">
+              <Input
+                id="coefficient"
+                type="text"
+                value={coefficient}
+                onChange={handleCoefficientChange}
+                className="text-right"
+              />
             </div>
           </div>
 
-          {/* Complete Button */}
-          <div className="p-4 mt-auto">
-            <Button className="w-full py-6 text-lg bg-blue-400 hover:bg-blue-500 button-transition">
-              Complete
-            </Button>
+          {/* Total */}
+          <div className="flex items-center justify-between">
+            <span className="text-xl font-bold">Total</span>
+            <span className="text-xl font-bold">
+              ${adjustedTotal.toFixed(2)}
+            </span>
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+
+      {/* Complete Button */}
+      <div className="p-4 mt-auto">
+        <Button className="w-full py-6 text-lg bg-blue-400 hover:bg-blue-500 button-transition">
+          Complete
+        </Button>
+      </div>
+    </>
   );
 }

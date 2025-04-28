@@ -77,82 +77,78 @@ function RouteComponent() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-white">
-      <main className="flex-1 max-w-md mx-auto w-full flex flex-col p-4">
-        <div className="border rounded-md overflow-hidden flex flex-col h-full">
-          {/* Header */}
-          <div className="p-4 border-b">
-            <h1 className="text-2xl font-bold title-transition">
-              Choose your items
-            </h1>
-            <p className="text-gray-700">
-              Just select what you ate. It will be split later.
-            </p>
-          </div>
+    <>
+      {/* Header */}
+      <div className="p-4 border-b">
+        <h1 className="text-2xl font-bold title-transition">
+          Choose your items
+        </h1>
+        <p className="text-gray-700">
+          Just select what you ate. It will be split later.
+        </p>
+      </div>
 
-          {/* Item List */}
-          <div className="flex-1 overflow-auto">
-            {bill.billItems.map((item) => {
-              const itemId = item.id;
-              const voters = votes
-                .filter((vote) => vote.billItemId === itemId)
-                .map((vote) => vote.userId);
-              return (
+      {/* Item List */}
+      <div className="flex-1 overflow-auto">
+        {bill.billItems.map((item) => {
+          const itemId = item.id;
+          const voters = votes
+            .filter((vote) => vote.billItemId === itemId)
+            .map((vote) => vote.userId);
+          return (
+            <div
+              key={`${item.nameEnglish}-${itemId}`}
+              className="flex items-center justify-between p-4 border-b cursor-pointer"
+              onClick={() => toggleItem(itemId)}
+            >
+              <div className="flex items-center gap-3">
                 <div
-                  key={`${item.nameEnglish}-${itemId}`}
-                  className="flex items-center justify-between p-4 border-b cursor-pointer"
-                  onClick={() => toggleItem(itemId)}
+                  className={cn(
+                    "w-6 h-6 rounded-full border-2 flex items-center justify-center",
+                    selectedItemIds.includes(itemId)
+                      ? "border-blue-400 bg-blue-400"
+                      : "border-gray-400",
+                  )}
                 >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={cn(
-                        "w-6 h-6 rounded-full border-2 flex items-center justify-center",
-                        selectedItemIds.includes(itemId)
-                          ? "border-blue-400 bg-blue-400"
-                          : "border-gray-400",
-                      )}
-                    >
-                      {selectedItemIds.includes(itemId) && (
-                        <div className="w-4 h-4 rounded-full bg-white" />
-                      )}
-                    </div>
-                    <span className="text-lg">{item.nameEnglish}</span>
-                  </div>
-
-                  {voters.length > 0 && (
-                    <div className="flex -space-x-2">
-                      {voters.map((voter) => (
-                        <Avatar
-                          key={voter}
-                          className={`w-6 h-6 avatar-transition`}
-                          style={{
-                            backgroundColor: getColorFromId(Number(voter)),
-                          }}
-                        />
-                      ))}
-                    </div>
+                  {selectedItemIds.includes(itemId) && (
+                    <div className="w-4 h-4 rounded-full bg-white" />
                   )}
                 </div>
-              );
-            })}
-          </div>
+                <span className="text-lg">{item.nameEnglish}</span>
+              </div>
 
-          {/* Footer Button */}
-          <div className="p-4 mt-auto">
-            <Button
-              className={cn(
-                "w-full py-6 text-lg button-transition",
-                hasSelections
-                  ? "bg-blue-400 hover:bg-blue-500"
-                  : "bg-gray-200 hover:bg-gray-300 text-gray-800",
+              {voters.length > 0 && (
+                <div className="flex -space-x-2">
+                  {voters.map((voter) => (
+                    <Avatar
+                      key={voter}
+                      className={`w-6 h-6 avatar-transition`}
+                      style={{
+                        backgroundColor: getColorFromId(Number(voter)),
+                      }}
+                    />
+                  ))}
+                </div>
               )}
-              onClick={handleDone}
-            >
-              {hasSelections ? "Done" : "Skip"}
-            </Button>
-          </div>
-        </div>
-      </main>
-    </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Footer Button */}
+      <div className="p-4 mt-auto">
+        <Button
+          className={cn(
+            "w-full py-6 text-lg button-transition",
+            hasSelections
+              ? "bg-blue-400 hover:bg-blue-500"
+              : "bg-gray-200 hover:bg-gray-300 text-gray-800",
+          )}
+          onClick={handleDone}
+        >
+          {hasSelections ? "Done" : "Skip"}
+        </Button>
+      </div>
+    </>
   );
 }
