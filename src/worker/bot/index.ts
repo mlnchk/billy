@@ -107,6 +107,7 @@ export const createBot = async ({
       // await ctx.api.pinChatMessage(ctx.chat.id, summaryMsg.message_id); // Bad Request: not enough rights to manage pinned messages in the chat
     } catch (error) {
       console.error("Error processing split command:", error);
+      console.log(error);
       await ctx.reply(
         "❌ Sorry, something went wrong while processing the bill.",
       );
