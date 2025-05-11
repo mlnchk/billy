@@ -4,8 +4,7 @@ import { createBot } from "./bot";
 import { createAiService } from "./services/ai";
 import { Hono } from "hono";
 import { apiRouter } from "./routes/api";
-
-// TODO: add webhook registration on start
+import { setBotWebhook } from "./bot/set-bot-webhook";
 
 export const app = new Hono<{ Bindings: Env }>();
 
@@ -23,5 +22,8 @@ app.use(`/api/bot/*`, async (c) => {
 
   return webhookCallback(bot, "hono", { timeoutMilliseconds: 100_000 })(c);
 });
+
+// FIXME: for some reason do not work before HMR
+setBotWebhook();
 
 export default app;

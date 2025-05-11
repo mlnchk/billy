@@ -5,6 +5,7 @@ import { startCommand } from "./commands/start.ts";
 import { createBillService } from "../features/bill/service.ts";
 import { createUserService } from "../features/user/service.ts";
 import { createVoteService } from "../features/vote/service.ts";
+import { APP_URL } from "../../lib/constants.ts";
 
 // Set up bot commands
 const commands = [
@@ -17,9 +18,7 @@ const commands = [
   { command: "help", description: "Show help information" },
 ];
 
-// TODO: move base url to env
-const getWebAppUrl = (billId: number) =>
-  `https://billy-dev-bot.loca.lt/app/bill/${billId}`;
+const getWebAppUrl = (billId: number) => `${APP_URL}/app/bill/${billId}`;
 
 export const createBot = async ({
   botToken,
