@@ -25,7 +25,11 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+
+    "types": [
+      "./worker-configuration.d.ts" /* We need to add it because we're importing Hono RPC client from `src/worker` to the client app */
+    ]
   },
   "include": ["src/react-app", "src/routes", "src/lib"]
 }

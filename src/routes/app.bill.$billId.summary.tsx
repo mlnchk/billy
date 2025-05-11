@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type React from "react";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

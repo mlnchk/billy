@@ -1,5 +1,5 @@
 import { hc } from "hono/client";
-import { ApiRouter } from "../worker/routes/api";
+import type { ApiRouter } from "../worker/routes/api";
 import { retrieveRawInitData } from "@telegram-apps/sdk-react";
 
 // FIXME: won't work in SSR environment

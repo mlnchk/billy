@@ -66,10 +66,10 @@
   },
   "scripts": {
     "build": "tsc -b && vite build",
-    "deploy": "npm run build && wrangler deploy",
+    "deploy": "pnpm run build && wrangler deploy",
     "dev": "vite",
     "lint": "eslint .",
-    "preview": "npm run build && vite preview",
+    "preview": "pnpm run build && vite preview",
     "types": "wrangler types",
     "tunnel": "lt --port 5173 -s billy-dev-bot",
     "drizzle:update": "drizzle-kit generate --out ./migrations --schema ./src/worker/services/db.ts --dialect sqlite",
