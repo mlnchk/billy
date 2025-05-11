@@ -8,7 +8,6 @@ import { cn } from "@/lib/utils";
 import { apiClient } from "@/lib/api";
 import { getColorFromId } from "@/lib/colors";
 import { Avatar } from "@/components/ui/avatar";
-import { MY_ID } from "@/lib/constants";
 
 export const Route = createFileRoute("/app/bill/$billId/")({
   component: RouteComponent,
@@ -16,9 +15,7 @@ export const Route = createFileRoute("/app/bill/$billId/")({
     const { billId } = params;
 
     const response = await apiClient.bill[":billId"].$get({
-      param: {
-        billId,
-      },
+      param: { billId },
     });
 
     if (!response.ok) {
@@ -42,8 +39,7 @@ function RouteComponent() {
     async mutationFn() {
       const response = await apiClient.bill[":billId"].vote.$post({
         param: { billId },
-        // TODO: replace my id with the user id from telegram api
-        json: { userId: MY_ID, itemIds: selectedItemIds },
+        json: { itemIds: selectedItemIds },
       });
 
       if (!response.ok) {

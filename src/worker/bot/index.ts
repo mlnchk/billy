@@ -18,8 +18,8 @@ const commands = [
 ];
 
 // TODO: move base url to env
-const getWebAppUrl = (chatId: number, messageId: number) =>
-  `https://billy-dev-bot.loca.lt/app/bill/${chatId}/${messageId}`;
+const getWebAppUrl = (billId: number) =>
+  `https://billy-dev-bot.loca.lt/app/bill/${billId}`;
 
 export const createBot = async ({
   botToken,
@@ -94,7 +94,7 @@ export const createBot = async ({
               {
                 text: "Open Bill in Web App",
                 web_app: {
-                  url: getWebAppUrl(ctx.chat.id, replyToMessage.message_id),
+                  url: getWebAppUrl(bill.id),
                 },
               },
             ],
@@ -157,7 +157,7 @@ export const createBot = async ({
             Object.entries(calculationResult.userSelections),
           ),
         },
-        "FIX_CURRENCY", // TODO: get currency from bill
+        "USD", // TODO: get currency from bill
       );
 
       await ctx.reply(calcMsg, {
@@ -169,7 +169,7 @@ export const createBot = async ({
               {
                 text: "Open Bill in Web App",
                 web_app: {
-                  url: getWebAppUrl(ctx.chat.id, billMessageId),
+                  url: getWebAppUrl(billId),
                 },
               },
             ],

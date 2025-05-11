@@ -18,9 +18,12 @@ export function createUserService({ db }: { db: D1Database }) {
      * Finds a user by Telegram ID, creating one if it doesn't exist.
      * Uses the Telegram ID as the default name if creating.
      */
-    async findOrCreateUserByTelegramId(telegramId: string): Promise<User> {
+    async findOrCreateUserByTelegramId(
+      telegramId: string,
+      { name }: { name?: string } = {},
+    ): Promise<User> {
       // Use telegramId as default name if creating a new user
-      const defaultUsername = telegramId;
+      const defaultUsername = name ?? telegramId;
 
       const existingUser = await userRepo.findUserByTelegramId(telegramId);
       if (existingUser) {

@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/accordion";
 import { apiClient } from "@/lib/api";
 import { getColorFromId } from "@/lib/colors";
-import { MY_ID } from "@/lib/constants";
+import { useTelegramUser } from "@/lib/telegram/use-user";
 
 export const Route = createFileRoute("/app/bill/$billId/results")({
   component: RouteComponent,
@@ -45,7 +45,14 @@ export default function RouteComponent() {
     navigate({ to: "../summary" });
   };
 
-  const currentUser = { name: MY_ID, ...userSelections[MY_ID] };
+  // FIXME: нам нет смысла использовать telegramUserId, потому что нам нужен id пользователя из нашей базы данных
+  const user = useTelegramUser();
+
+  const currentUserWithSelections = {
+    id: user.id,
+    name: user.first_name,
+    ...userSelections[user.id],
+  };
 
   return (
     <>
@@ -72,18 +79,24 @@ export default function RouteComponent() {
               <Avatar
                 className={`w-6 h-6 avatar-transition`}
                 style={{
-                  backgroundColor: getColorFromId(Number(currentUser.name)),
+                  backgroundColor: getColorFromId(
+                    Number(currentUserWithSelections.id),
+                  ),
                 }}
               >
                 <AvatarFallback className="text-xs"></AvatarFallback>
               </Avatar>
-              <span className="text-lg font-medium">{currentUser.name}</span>
+              <span className="text-lg font-medium">
+                {currentUserWithSelections.name}
+              </span>
             </div>
-            <span className="font-bold">${currentUser.total}</span>
+            <span className="font-bold">
+              ${currentUserWithSelections.total}
+            </span>
           </div>
 
           {/* User items */}
-          {currentUser.itemsWithProportion.map((item) => (
+          {currentUserWithSelections.itemsWithProportion.map((item) => (
             <div
               key={item.item.id}
               className="flex items-center justify-between py-2 px-4 border-b last:border-b-0 cursor-pointer hover:bg-gray-50"
@@ -106,7 +119,7 @@ export default function RouteComponent() {
         {/* Other Users Section */}
         <Accordion type="multiple" className="w-full">
           {Object.entries(userSelections)
-            .filter(([userId]) => userId !== MY_ID.toString())
+            .filter(([userId]) => userId !== user.id.toString())
             .map(([userId, user]) => (
               <AccordionItem
                 key={userId}

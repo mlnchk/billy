@@ -1,13 +1,12 @@
 import { z } from "zod";
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
+import { validate, parse } from "@telegram-apps/init-data-node";
 
 import { createBillService } from "../features/bill/service";
 import { createAiService } from "../services/ai";
 import { createVoteService } from "../features/vote/service";
 import { createUserService } from "../features/user/service";
-
-import { MY_ID } from "../../lib/constants";
 
 export const apiRouter = new Hono<{
   Bindings: Env;
@@ -33,8 +32,47 @@ export const apiRouter = new Hono<{
     await next();
   })
   .use(async (c, next) => {
-    // TODO: get user id from token or telegram id
-    c.set("userId", MY_ID);
+    const authHeader = c.req.header("Authorization");
+
+    if (!authHeader) {
+      return c.json({ error: "Unauthorized" }, 401);
+    }
+
+    const [authType, authData = ""] = authHeader.split(" ");
+
+    if (authType !== "tma") {
+      return c.json({ error: "Auth type not supported" }, 401);
+    }
+
+    // парсим только в production, потому что в development мы используем mock
+    if (import.meta.env.PROD) {
+      try {
+        validate(authData, c.env.BOT_TOKEN);
+      } catch (error) {
+        console.error(error);
+        return c.json({ error: "Invalid init data" }, 401);
+      }
+    }
+
+    const parsedInitData = parse(authData);
+    const telegramUser = parsedInitData.user;
+
+    if (!telegramUser) {
+      return c.json({ error: "Telegram user is not found" }, 401);
+    }
+
+    const userService = c.get("userService");
+    // TODO: add or update user name and photo
+    const user = await userService.findOrCreateUserByTelegramId(
+      telegramUser.id.toString(),
+      {
+        name: [telegramUser.first_name, telegramUser.last_name]
+          .filter(Boolean)
+          .join(" "),
+      },
+    );
+
+    c.set("userId", user.id);
 
     await next();
   })

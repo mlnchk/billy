@@ -27,5 +27,5 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src/react-app", "src/routes"]
+  "include": ["src/react-app", "src/routes", "src/lib"]
 }

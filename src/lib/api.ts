@@ -1,4 +1,12 @@
 import { hc } from "hono/client";
 import { ApiRouter } from "../worker/routes/api";
+import { retrieveRawInitData } from "@telegram-apps/sdk-react";
 
-export const apiClient = hc<ApiRouter>("/api/client");
+// FIXME: won't work in SSR environment
+const tgRawInitData = retrieveRawInitData();
+
+export const apiClient = hc<ApiRouter>("/api/client", {
+  headers: {
+    Authorization: `tma ${tgRawInitData}`, // FIXME: could be undefined
+  },
+});
