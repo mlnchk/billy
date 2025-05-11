@@ -6,7 +6,7 @@ import type { BillItem } from "../../services/db"; // Import BillItem type if ne
 
 // Define the structure expected by the API route
 interface BillItemDetailsResponse {
-  billItem: BillItem | null;
+  billItem: BillItem;
   userVotes: { userId: number; share: number }[];
 }
 

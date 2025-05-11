@@ -1,24 +1,10 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Plus, Minus, PlusCircle } from "lucide-react";
+import { ChevronLeft, Plus, Minus } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { apiClient } from "@/lib/api";
 import { getColorFromId } from "@/lib/colors";
 import { useMutation } from "@tanstack/react-query";
@@ -45,7 +31,6 @@ export default function RouteComponent() {
   const { billId, itemId } = Route.useParams();
   const { billItem, userVotes } = Route.useLoaderData();
   const [voters, setVoters] = useState(userVotes);
-  const [showAddPeople, setShowAddPeople] = useState(false);
   const router = useRouter();
 
   const { mutateAsync: updateVotes } = useMutation({
@@ -81,14 +66,6 @@ export default function RouteComponent() {
         return voter;
       }),
     );
-  };
-
-  const addPerson = () => {
-    // const person = additionalPeople.find((p) => p.id.toString() === personId);
-    // if (person) {
-    //   setVoters((prev) => [...prev, { ...person, shares: 1 }]);
-    //   setShowAddPeople(false);
-    // }
   };
 
   const handleSave = async () => {
@@ -159,55 +136,6 @@ export default function RouteComponent() {
               </div>
             </div>
           ))}
-
-          {/* Add more people button */}
-          <Dialog open={showAddPeople} onOpenChange={setShowAddPeople}>
-            <DialogTrigger asChild>
-              <button className="flex items-center gap-3 text-gray-500 hover:text-gray-700 mt-2">
-                <Avatar className="w-6 h-6 bg-gray-200">
-                  <AvatarFallback>
-                    <PlusCircle className="w-4 h-4" />
-                  </AvatarFallback>
-                </Avatar>
-                <span>Add more people</span>
-              </button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add Person</DialogTitle>
-              </DialogHeader>
-              <Select onValueChange={addPerson}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a person" />
-                </SelectTrigger>
-                <SelectContent>
-                  {voters
-                    .filter(
-                      (person) =>
-                        !voters.some((v) => v.userId === person.userId),
-                    )
-                    .map((person) => (
-                      <SelectItem
-                        key={person.userId}
-                        value={person.userId.toString()}
-                      >
-                        <div className="flex items-center gap-2">
-                          <div
-                            className={`w-3 h-3 rounded-full`}
-                            style={{
-                              backgroundColor: getColorFromId(
-                                Number(person.userId),
-                              ),
-                            }}
-                          />
-                          {person.userId}
-                        </div>
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-            </DialogContent>
-          </Dialog>
         </div>
 
         {/* Pie Chart */}
