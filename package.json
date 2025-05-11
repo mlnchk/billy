@@ -73,7 +73,8 @@
     "types": "wrangler types",
     "tunnel": "lt --port 5173 -s billy-dev-bot",
     "drizzle:update": "drizzle-kit generate --out ./migrations --schema ./src/worker/services/db.ts --dialect sqlite",
-    "db:migrate": "wrangler d1 migrations apply billy-db "
+    "db:migrate": "wrangler d1 migrations apply billy-db",
+    "db:migrate:remote": "wrangler d1 migrations apply billy-db --remote"
   },
   "type": "module",
   "packageManager": "pnpm@9.15.1+sha512.1acb565e6193efbebda772702950469150cf12bcc764262e7587e71d19dc98a423dff9536e57ea44c49bdf790ff694e83c27be5faa23d67e0c033b583be4bfcf"
