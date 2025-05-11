@@ -76,6 +76,11 @@ export const apiRouter = new Hono<{
 
     await next();
   })
+  .get("/user", async (c) => {
+    const userId = c.get("userId");
+
+    return c.json({ id: userId });
+  })
   .get("/bill/:billId", async (c) => {
     const billService = c.get("billService");
     const { billId } = c.req.param();

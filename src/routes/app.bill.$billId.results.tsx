@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/accordion";
 import { apiClient } from "@/lib/api";
 import { getColorFromId } from "@/lib/colors";
-import { useTelegramUser } from "@/lib/telegram/use-user";
+import { useAuth } from "@/lib/auth/use-auth";
 
 export const Route = createFileRoute("/app/bill/$billId/results")({
   component: RouteComponent,
@@ -45,12 +45,12 @@ export default function RouteComponent() {
     navigate({ to: "../summary" });
   };
 
-  // FIXME: нам нет смысла использовать telegramUserId, потому что нам нужен id пользователя из нашей базы данных
-  const user = useTelegramUser();
+  const { user } = useAuth();
 
   const currentUserWithSelections = {
     id: user.id,
-    name: user.first_name,
+    name: user.id,
+    // name: user.name,
     ...userSelections[user.id],
   };
 

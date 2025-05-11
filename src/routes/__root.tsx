@@ -1,3 +1,4 @@
+import { AuthProvider } from "@/lib/auth/auth-provider";
 import { initTelegramEnv } from "@/lib/telegram";
 
 import { Outlet, createRootRoute } from "@tanstack/react-router";
@@ -13,7 +14,9 @@ function RootComponent() {
     <div className="flex flex-col min-h-screen bg-white">
       <main className="flex-1 max-w-md mx-auto w-full flex flex-col md:p-4">
         <div className="md:border md:rounded-md overflow-hidden flex flex-col h-full">
-          <Outlet />
+          <AuthProvider>
+            <Outlet />
+          </AuthProvider>
         </div>
       </main>
     </div>
