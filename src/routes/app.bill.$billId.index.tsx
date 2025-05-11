@@ -35,7 +35,7 @@ function RouteComponent() {
   // TODO: add default values from loader data
   const [selectedItemIds, setSelectedItemIds] = useState<number[]>([]);
 
-  const { mutate: updateVotes } = useMutation({
+  const { mutateAsync: updateVotes, isPending: isUpdatingVotes } = useMutation({
     async mutationFn() {
       const response = await apiClient.bill[":billId"].vote.$post({
         param: { billId },
@@ -64,9 +64,9 @@ function RouteComponent() {
 
   const hasSelections = selectedItemIds.length > 0;
 
-  const handleDone = () => {
+  const handleDone = async () => {
     if (hasSelections) {
-      updateVotes();
+      await updateVotes();
     }
 
     navigate({ to: "./results" });
@@ -141,8 +141,9 @@ function RouteComponent() {
               : "bg-gray-200 hover:bg-gray-300 text-gray-800",
           )}
           onClick={handleDone}
+          disabled={isUpdatingVotes}
         >
-          {hasSelections ? "Done" : "Skip"}
+          {isUpdatingVotes ? "Updating..." : hasSelections ? "Done" : "Skip"}
         </Button>
       </div>
     </>
