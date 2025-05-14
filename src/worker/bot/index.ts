@@ -5,7 +5,7 @@ import { startCommand } from "./commands/start.ts";
 import { createBillService } from "../features/bill/service.ts";
 import { createUserService } from "../features/user/service.ts";
 import { createVoteService } from "../features/vote/service.ts";
-import { APP_URL } from "../../lib/constants.ts";
+import { InlineKeyboardMarkup } from "grammy/types";
 
 // Set up bot commands
 const commands = [
@@ -15,10 +15,25 @@ const commands = [
     description:
       "Calculate split and show who pays what (reply to bill analysis)",
   },
+  { command: "webapp", description: "Debug: Open web app with bill ID 1" },
   { command: "help", description: "Show help information" },
 ];
 
-const getWebAppUrl = (billId: number) => `${APP_URL}/app/bill/${billId}`;
+// Unified approach for all chat types
+const getTelegramAppUrl = (botUsername: string, billId: number) =>
+  `https://t.me/${botUsername}/?startapp=bill_${billId}`;
+
+// Function to create inline keyboard for opening the web app
+const createWebAppInlineKeyboard = (
+  botUsername: string,
+  billId: number,
+): InlineKeyboardMarkup => {
+  const url = getTelegramAppUrl(botUsername, billId);
+
+  return {
+    inline_keyboard: [[{ text: "Open in Web App", url }]],
+  };
+};
 
 export const createBot = async ({
   botToken,
@@ -36,11 +51,27 @@ export const createBot = async ({
   // Initialize bot with token from environment
   const bot = new Bot(botToken);
 
+  // Get bot info to use in deep links
+  const botInfo = await bot.api.getMe();
+  const botUsername = botInfo.username;
+
   // Set bot commands
   await bot.api.setMyCommands(commands);
 
   bot.command("start", startCommand);
   bot.command("help", startCommand);
+
+  // Debug command to open web app with bill ID 1
+  bot.command("webapp", async (ctx) => {
+    try {
+      await ctx.reply(`Debug: Opening web app with bill ID 1`, {
+        reply_markup: createWebAppInlineKeyboard(botUsername, 1),
+      });
+    } catch (error) {
+      console.error("Error in webapp debug command:", error);
+      await ctx.reply("❌ Error in webapp debug command.");
+    }
+  });
 
   // Handle photo messages with /parse command
   bot.command("parse", async (ctx) => {
@@ -87,18 +118,7 @@ export const createBot = async ({
       await ctx.reply(summaryMsgText, {
         parse_mode: "MarkdownV2",
         reply_parameters: { message_id: replyToMessage.message_id },
-        reply_markup: {
-          inline_keyboard: [
-            [
-              {
-                text: "Open Bill in Web App",
-                web_app: {
-                  url: getWebAppUrl(bill.id),
-                },
-              },
-            ],
-          ],
-        },
+        reply_markup: createWebAppInlineKeyboard(botUsername, bill.id),
       });
 
       // deleting parsing message
@@ -163,22 +183,7 @@ export const createBot = async ({
       await ctx.reply(calcMsg, {
         parse_mode: "MarkdownV2",
         reply_parameters: { message_id: billMessageId },
-        reply_markup: {
-          inline_keyboard: [
-            [
-              {
-                text: "Open Bill in Web App",
-                web_app: {
-                  url: getWebAppUrl(billId),
-                },
-              },
-            ],
-          ],
-        },
-        // reply_markup: {
-        // force_reply: true,
-        //   inline_keyboard: [[{ text: "Open thread", url: linkToThread }]],
-        // },
+        reply_markup: createWebAppInlineKeyboard(botUsername, billId),
       });
 
       await ctx.deleteMessage();
