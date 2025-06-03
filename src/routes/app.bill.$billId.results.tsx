@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Clock } from "lucide-react";
 import {
@@ -49,8 +49,8 @@ export default function RouteComponent() {
 
   const currentUserWithSelections = {
     id: user.id,
-    name: user.id,
-    // name: user.name,
+    name: user.name,
+    photoUrl: user.photoUrl,
     ...userSelections[user.id],
   };
 
@@ -84,6 +84,9 @@ export default function RouteComponent() {
                   ),
                 }}
               >
+                <AvatarImage
+                  src={currentUserWithSelections.photoUrl ?? undefined}
+                />
                 <AvatarFallback className="text-xs"></AvatarFallback>
               </Avatar>
               <span className="text-lg font-medium">

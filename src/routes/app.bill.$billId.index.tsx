@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { apiClient } from "@/lib/api";
 import { getColorFromId } from "@/lib/colors";
-import { Avatar } from "@/components/ui/avatar";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
 
 export const Route = createFileRoute("/app/bill/$billId/")({
   component: RouteComponent,
@@ -90,7 +90,7 @@ function RouteComponent() {
           const itemId = item.id;
           const voters = votes
             .filter((vote) => vote.billItemId === itemId)
-            .map((vote) => vote.userId);
+            .map((vote) => vote.user);
           return (
             <div
               key={`${item.nameEnglish}-${itemId}`}
@@ -117,12 +117,14 @@ function RouteComponent() {
                 <div className="flex -space-x-2">
                   {voters.map((voter) => (
                     <Avatar
-                      key={voter}
+                      key={voter.id}
                       className={`w-6 h-6 avatar-transition`}
                       style={{
-                        backgroundColor: getColorFromId(Number(voter)),
+                        backgroundColor: getColorFromId(Number(voter.id)),
                       }}
-                    />
+                    >
+                      <AvatarImage src={voter.photoUrl ?? undefined} />
+                    </Avatar>
                   ))}
                 </div>
               )}

@@ -100,7 +100,7 @@ export function createBillService({
       const calculationResult = calculateBillSplit(
         billWithVotes.bill,
         billWithVotes.votes.map((vote) => ({
-          userId: vote.userId,
+          userId: vote.user.id,
           itemId: vote.billItemId,
           quantity: vote.quantity,
         })),

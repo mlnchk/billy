@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX `users_telegram_id_unique` ON `users` (`telegram_id`);

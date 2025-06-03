@@ -62,9 +62,12 @@ export function createVoteRepo({ db }: { db: DB }) {
       return drizzleDb
         .select({
           billItemId: itemAssignments.billItemId,
-          userId: users.id,
-          telegramId: users.telegramId,
           quantity: itemAssignments.quantity,
+          user: {
+            id: users.id,
+            name: users.name,
+            photoUrl: users.photoUrl,
+          },
         })
         .from(itemAssignments)
         .innerJoin(users, eq(itemAssignments.userId, users.id))

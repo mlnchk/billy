@@ -94,7 +94,8 @@ const itemAssignmentsRelations = relations(itemAssignments, ({ one }) => ({
 export const users = sqliteTable("users", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
-  telegramId: text("telegram_id"),
+  photoUrl: text("photo_url"),
+  telegramId: text("telegram_id").unique(),
 });
 
 const usersRelations = relations(users, ({ many }) => ({

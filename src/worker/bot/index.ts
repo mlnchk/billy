@@ -230,6 +230,7 @@ export const createBot = async ({
 
       const { id: userId } = await userService.findOrCreateUserByTelegramId(
         ctx.from.id.toString(),
+        { name: ctx.from.first_name },
       );
 
       await voteService.voteForBill({

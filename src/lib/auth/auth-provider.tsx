@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { createContext, PropsWithChildren } from "react";
 
 export const AuthContext = createContext<{
-  user: { id: number } | null;
+  user: { id: number; name: string | null; photoUrl: string | null } | null;
 }>({
   user: null,
 });

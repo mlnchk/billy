@@ -62,13 +62,13 @@ export const apiRouter = new Hono<{
     }
 
     const userService = c.get("userService");
-    // TODO: add or update user name and photo
     const user = await userService.findOrCreateUserByTelegramId(
       telegramUser.id.toString(),
       {
         name: [telegramUser.first_name, telegramUser.last_name]
           .filter(Boolean)
           .join(" "),
+        photoUrl: telegramUser.photo_url,
       },
     );
 
@@ -79,7 +79,14 @@ export const apiRouter = new Hono<{
   .get("/user", async (c) => {
     const userId = c.get("userId");
 
-    return c.json({ id: userId });
+    const userService = c.get("userService");
+    const user = await userService.getUserById(userId);
+
+    if (!user) {
+      return c.json({ error: "User not found" }, 404);
+    }
+
+    return c.json(user);
   })
   .get("/bill/:billId", async (c) => {
     const billService = c.get("billService");

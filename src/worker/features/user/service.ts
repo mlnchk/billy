@@ -7,6 +7,10 @@ export function createUserService({ db }: { db: D1Database }) {
   const userRepo = createUserRepo({ db });
 
   return {
+    async getUserById(userId: number): Promise<User | null> {
+      return userRepo.findUserById(userId);
+    },
+
     /**
      * Finds a user by Telegram ID.
      */
@@ -20,21 +24,14 @@ export function createUserService({ db }: { db: D1Database }) {
      */
     async findOrCreateUserByTelegramId(
       telegramId: string,
-      { name }: { name?: string } = {},
+      { name, photoUrl }: { name?: string; photoUrl?: string } = {},
     ): Promise<User> {
-      // Use telegramId as default name if creating a new user
-      const defaultUsername = name ?? telegramId;
-
-      const existingUser = await userRepo.findUserByTelegramId(telegramId);
-      if (existingUser) {
-        return existingUser;
-      }
-
-      // User not found, create a new one
-      const newUser = await userRepo.createUser({
+      const newUser = await userRepo.upsertUser({
         telegramId: telegramId,
-        name: defaultUsername,
+        name: name ?? telegramId,
+        photoUrl: photoUrl,
       });
+
       return newUser;
     },
   };
