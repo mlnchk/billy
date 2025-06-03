@@ -1,0 +1,334 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Common Patterns and Examples
+
+## React Component Patterns
+
+### Basic Component Structure
+```tsx
+interface ComponentProps {
+  title: string;
+  onAction?: () => void;
+}
+
+export function Component({ title, onAction }: ComponentProps) {
+  return (
+    <div className="p-4 rounded-lg bg-white shadow-sm">
+      <h2 className="text-lg font-semibold">{title}</h2>
+      {onAction && (
+        <button onClick={onAction} className="mt-2 px-4 py-2 bg-blue-500 text-white rounded">
+          Action
+        </button>
+      )}
+    </div>
+  );
+}
+```
+
+### TanStack Query Usage
+```tsx
+import { useQuery } from '@tanstack/react-query';
+
+export function DataComponent() {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['data'],
+    queryFn: async () => {
+      const response = await fetch('/api/data');
+      return response.json();
+    },
+  });
+
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+
+  return <div>{JSON.stringify(data)}</div>;
+}
+```
+
+### TanStack Router Route Definition
+```tsx
+import { createFileRoute } from '@tanstack/react-router';
+
+export const Route = createFileRoute('/dashboard')({
+  component: Dashboard,
+  loader: async () => {
+    // Preload data
+    return { data: await fetchDashboardData() };
+  },
+});
+
+function Dashboard() {
+  const { data } = Route.useLoaderData();
+  return <div>Dashboard: {data}</div>;
+}
+```
+
+## Hono API Patterns
+
+### Basic Route Handler
+```typescript
+import { Hono } from 'hono';
+import { zValidator } from '@hono/zod-validator';
+import { z } from 'zod';
+
+const app = new Hono();
+
+const schema = z.object({
+  name: z.string(),
+  email: z.string().email(),
+});
+
+app.post('/api/users', zValidator('json', schema), async (c) => {
+  const { name, email } = c.req.valid('json');
+
+  try {
+    // Database operation
+    const user = await createUser({ name, email });
+    return c.json({ success: true, user });
+  } catch (error) {
+    return c.json({ error: 'Failed to create user' }, 500);
+  }
+});
+```
+
+### Middleware Pattern
+```typescript
+import { createMiddleware } from 'hono/factory';
+
+const authMiddleware = createMiddleware(async (c, next) => {
+  const token = c.req.header('Authorization');
+
+  if (!token) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
+  // Validate token
+  const user = await validateToken(token);
+  c.set('user', user);
+
+  await next();
+});
+
+app.use('/api/protected/*', authMiddleware);
+```
+
+## Database Patterns with Drizzle
+
+### Schema Definition
+```typescript
+import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+
+export const users = sqliteTable('users', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  name: text('name').notNull(),
+  email: text('email').notNull().unique(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});
+
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;
+```
+
+### Database Operations
+```typescript
+import { drizzle } from 'drizzle-orm/d1';
+import { eq } from 'drizzle-orm';
+import { users } from './schema';
+
+export class UserService {
+  constructor(private db: D1Database) {}
+
+  async createUser(data: NewUser): Promise<User> {
+    const [user] = await drizzle(this.db)
+      .insert(users)
+      .values(data)
+      .returning();
+    return user;
+  }
+
+  async getUserById(id: number): Promise<User | null> {
+    const [user] = await drizzle(this.db)
+      .select()
+      .from(users)
+      .where(eq(users.id, id));
+    return user || null;
+  }
+
+  async updateUser(id: number, data: Partial<NewUser>): Promise<User> {
+    const [user] = await drizzle(this.db)
+      .update(users)
+      .set(data)
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+}
+```
+
+## Telegram Bot Patterns
+
+### Bot Command Handler
+```typescript
+import { Bot, Context } from 'grammy';
+
+const bot = new Bot(process.env.BOT_TOKEN!);
+
+bot.command('start', async (ctx: Context) => {
+  await ctx.reply('Welcome! How can I help you today?', {
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: 'Get Started', callback_data: 'get_started' }],
+        [{ text: 'Help', callback_data: 'help' }],
+      ],
+    },
+  });
+});
+
+bot.callbackQuery('get_started', async (ctx) => {
+  await ctx.answerCallbackQuery();
+  await ctx.editMessageText('Let\'s get started!');
+});
+```
+
+### Bot Middleware
+```typescript
+import { Context, NextFunction } from 'grammy';
+
+async function authMiddleware(ctx: Context, next: NextFunction) {
+  const userId = ctx.from?.id;
+
+  if (!userId) {
+    await ctx.reply('Authentication required');
+    return;
+  }
+
+  // Check if user exists in database
+  const user = await getUserById(userId);
+  if (!user) {
+    await ctx.reply('Please register first');
+    return;
+  }
+
+  ctx.user = user;
+  await next();
+}
+
+bot.use(authMiddleware);
+```
+
+## AI Integration Patterns
+
+### Google AI SDK Usage
+```typescript
+import { google } from '@ai-sdk/google';
+import { generateText } from 'ai';
+
+export async function generateResponse(prompt: string): Promise<string> {
+  const { text } = await generateText({
+    model: google('gemini-1.5-flash'),
+    prompt,
+    maxTokens: 1000,
+  });
+
+  return text;
+}
+
+export async function streamResponse(prompt: string) {
+  const { textStream } = await streamText({
+    model: google('gemini-1.5-flash'),
+    prompt,
+  });
+
+  return textStream;
+}
+```
+
+## Error Handling Patterns
+
+### API Error Response
+```typescript
+export class APIError extends Error {
+  constructor(
+    public message: string,
+    public status: number = 500,
+    public code?: string
+  ) {
+    super(message);
+    this.name = 'APIError';
+  }
+}
+
+export function handleError(error: unknown) {
+  if (error instanceof APIError) {
+    return { error: error.message, code: error.code, status: error.status };
+  }
+
+  console.error('Unexpected error:', error);
+  return { error: 'Internal server error', status: 500 };
+}
+```
+
+### React Error Boundary
+```tsx
+import { Component, ReactNode } from 'react';
+
+interface Props {
+  children: ReactNode;
+  fallback?: ReactNode;
+}
+
+interface State {
+  hasError: boolean;
+}
+
+export class ErrorBoundary extends Component<Props, State> {
+  constructor(props: Props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(): State {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: any) {
+    console.error('Error caught by boundary:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback || <div>Something went wrong.</div>;
+    }
+
+    return this.props.children;
+  }
+}
+```
+
+## Environment and Configuration
+
+### Environment Variables Access
+```typescript
+// In worker context
+interface Env {
+  BILLY_DB: D1Database;
+  BOT_TOKEN: string;
+  GOOGLE_API_KEY: string;
+}
+
+export default {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext) {
+    // Access environment variables
+    const db = env.BILLY_DB;
+    const botToken = env.BOT_TOKEN;
+
+    // Your handler logic
+  },
+};
+```
+
+### Local Development Variables
+Reference [.dev.vars](mdc:.dev.vars) for local environment variables that are automatically loaded during development.

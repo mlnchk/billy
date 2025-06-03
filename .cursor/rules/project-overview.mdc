@@ -1,0 +1,69 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Billy - Full-Stack React + Cloudflare Workers Application
+
+## Project Architecture
+
+This is a full-stack application called "Billy" that combines:
+- **Frontend**: React 19 + Vite + TanStack Router + Tailwind CSS
+- **Backend**: Hono framework running on Cloudflare Workers
+- **Database**: Cloudflare D1 (SQLite) with Drizzle ORM
+- **Bot**: Telegram bot integration using Grammy
+- **AI**: Google AI SDK integration
+- **Deployment**: Cloudflare Workers platform
+
+## Key Configuration Files
+
+- [package.json](mdc:package.json) - Project dependencies and scripts
+- [wrangler.json](mdc:wrangler.json) - Cloudflare Workers configuration
+- [vite.config.ts](mdc:vite.config.ts) - Vite build configuration
+- [tailwind.config.js](mdc:tailwind.config.js) - Tailwind CSS configuration
+- [tsconfig.json](mdc:tsconfig.json) - TypeScript configuration (root)
+- [tsconfig.app.json](mdc:tsconfig.app.json) - TypeScript config for React app
+- [tsconfig.worker.json](mdc:tsconfig.worker.json) - TypeScript config for Worker
+
+## Application Structure
+
+### Frontend (React App)
+- Entry point: [src/react-app/main.tsx](mdc:src/react-app/main.tsx)
+- Styles: [src/react-app/index.css](mdc:src/react-app/index.css)
+- Routes: [src/routes/](mdc:src/routes) directory
+- Components: [src/components/](mdc:src/components) directory
+- UI Components: [src/components/ui/](mdc:src/components/ui) directory
+
+### Backend (Cloudflare Worker)
+- Entry point: [src/worker/index.ts](mdc:src/worker/index.ts)
+- API Routes: [src/worker/routes/](mdc:src/worker/routes) directory
+- Features: [src/worker/features/](mdc:src/worker/features) directory
+- Services: [src/worker/services/](mdc:src/worker/services) directory
+- Bot: [src/worker/bot/](mdc:src/worker/bot) directory
+
+### Database
+- Migrations: [migrations/](mdc:migrations) directory
+- Database schema likely in [src/worker/services/db.ts](mdc:src/worker/services/db.ts)
+
+## Development Commands
+
+- `pnpm dev` - Start development server
+- `pnpm build` - Build for production
+- `pnpm deploy` - Deploy to Cloudflare Workers
+- `pnpm drizzle:update` - Generate database migrations
+- `pnpm db:migrate` - Apply migrations locally
+- `pnpm db:migrate:remote` - Apply migrations to remote database
+- `pnpm tunnel` - Create local tunnel for bot development
+
+## Technology Stack
+
+- **React 19** with modern hooks and concurrent features
+- **TanStack Router** for type-safe routing
+- **TanStack Query** for server state management
+- **Tailwind CSS 4** for styling with modern features
+- **Radix UI** for accessible component primitives
+- **Hono** as the web framework for the Worker
+- **Drizzle ORM** for database operations
+- **Grammy** for Telegram bot functionality
+- **Google AI SDK** for AI features
+- **Zod** for runtime type validation

@@ -1,0 +1,204 @@
+---
+description: If something goes wrong
+globs:
+alwaysApply: false
+---
+# Troubleshooting Guide
+
+## Common Development Issues
+
+### Build and Compilation Errors
+
+#### TypeScript Errors
+- **Issue**: Type errors in worker vs app contexts
+- **Solution**: Check you're using the correct tsconfig:
+  - Frontend: [tsconfig.app.json](mdc:tsconfig.app.json)
+  - Worker: [tsconfig.worker.json](mdc:tsconfig.worker.json)
+- **Command**: Run `pnpm types` to regenerate Cloudflare types
+
+#### Vite Build Failures
+- **Issue**: Import resolution errors
+- **Solution**: Check [vite.config.ts](mdc:vite.config.ts) configuration
+- **Common Fix**: Ensure proper path aliases and plugin configuration
+
+#### Tailwind CSS Not Working
+- **Issue**: Styles not applying
+- **Solution**: Verify [tailwind.config.js](mdc:tailwind.config.js) content paths
+- **Check**: Ensure Tailwind directives are in [src/react-app/index.css](mdc:src/react-app/index.css)
+
+### Database Issues
+
+#### Migration Failures
+- **Issue**: Migration won't apply
+- **Commands**:
+  ```bash
+  pnpm drizzle:update  # Generate new migration
+  pnpm db:migrate      # Apply locally
+  ```
+- **Check**: Verify schema in [src/worker/services/db.ts](mdc:src/worker/services/db.ts)
+
+#### D1 Database Connection
+- **Issue**: Database not accessible
+- **Solution**: Check [wrangler.json](mdc:wrangler.json) D1 binding configuration
+- **Verify**: Database ID and binding name match
+
+#### Schema Sync Issues
+- **Issue**: Local vs remote schema mismatch
+- **Solution**:
+  ```bash
+  pnpm db:migrate:remote  # Apply to remote
+  ```
+
+### Cloudflare Workers Issues
+
+#### Deployment Failures
+- **Issue**: Worker deployment fails
+- **Check**: [wrangler.json](mdc:wrangler.json) configuration
+- **Solution**: Verify compatibility date and flags
+- **Command**: `pnpm build` before `pnpm deploy`
+
+#### Environment Variables
+- **Issue**: Environment variables not accessible
+- **Local**: Check [.dev.vars](mdc:.dev.vars) file
+- **Remote**: Use `wrangler secret put <NAME>` for sensitive data
+- **Verify**: Environment interface in worker code
+
+#### Worker Size Limits
+- **Issue**: Worker bundle too large
+- **Solution**: Check bundle analysis and optimize imports
+- **Tool**: Use Vite bundle analyzer
+
+### Telegram Bot Issues
+
+#### Webhook Problems
+- **Issue**: Bot not receiving updates
+- **Solution**: Use `pnpm tunnel` for local development
+- **Check**: Webhook URL configuration
+- **Debug**: Check bot token and permissions
+
+#### Bot Commands Not Working
+- **Issue**: Commands not responding
+- **Check**: Bot logic in [src/worker/bot/](mdc:src/worker/bot) directory
+- **Verify**: Command handlers are properly registered
+- **Debug**: Check bot logs in Cloudflare dashboard
+
+### React Development Issues
+
+#### TanStack Router Issues
+- **Issue**: Routes not working
+- **Check**: Route definitions in [src/routes/](mdc:src/routes) directory
+- **Verify**: Route tree generation in [src/routeTree.gen.ts](mdc:src/routeTree.gen.ts)
+- **Solution**: Restart dev server to regenerate routes
+
+#### TanStack Query Problems
+- **Issue**: Data fetching not working
+- **Check**: Query client setup in [src/react-app/main.tsx](mdc:src/react-app/main.tsx)
+- **Debug**: Use React Query DevTools
+- **Verify**: API endpoints are accessible
+
+#### Component Rendering Issues
+- **Issue**: Components not rendering
+- **Check**: React 19 compatibility
+- **Verify**: Proper TypeScript interfaces
+- **Debug**: Use React DevTools
+
+### Performance Issues
+
+#### Slow Development Server
+- **Issue**: Vite dev server slow
+- **Solution**: Check [vite.config.ts](mdc:vite.config.ts) optimization settings
+- **Clear**: Node modules and restart: `rm -rf node_modules && pnpm install`
+
+#### Large Bundle Size
+- **Issue**: Production bundle too large
+- **Analysis**: Use `pnpm build` and check dist folder
+- **Optimize**: Remove unused dependencies and imports
+- **Tool**: Use bundle analyzer plugins
+
+#### Database Query Performance
+- **Issue**: Slow database queries
+- **Solution**: Add proper indexes to schema
+- **Check**: Query patterns in Drizzle operations
+- **Monitor**: Use Cloudflare Analytics
+
+## Debugging Strategies
+
+### Local Development Debugging
+
+#### Frontend Debugging
+- Use browser DevTools
+- Enable React DevTools extension
+- Use TanStack Query DevTools
+- Check network tab for API calls
+
+#### Worker Debugging
+- Use `console.log` statements
+- Check Wrangler dev logs
+- Use Cloudflare Workers dashboard logs
+- Test API endpoints with curl/Postman
+
+#### Database Debugging
+- Use Drizzle Studio for local inspection
+- Check migration files in [migrations/](mdc:migrations) directory
+- Verify schema matches expectations
+- Test queries in isolation
+
+### Production Debugging
+
+#### Cloudflare Dashboard
+- Check Worker logs and metrics
+- Monitor D1 database performance
+- Review error rates and patterns
+- Use Real User Monitoring (RUM)
+
+#### Error Tracking
+- Implement proper error boundaries
+- Log errors with context
+- Use structured logging
+- Monitor bot error rates
+
+## Environment-Specific Issues
+
+### Development Environment
+- **Issue**: Hot reload not working
+- **Solution**: Check Vite configuration and file watchers
+- **Port conflicts**: Change port in [vite.config.ts](mdc:vite.config.ts)
+
+### Production Environment
+- **Issue**: Different behavior than local
+- **Check**: Environment variables match
+- **Verify**: Build process includes all necessary files
+- **Monitor**: Cloudflare Workers logs for runtime errors
+
+## Getting Help
+
+### Documentation Resources
+- [Cloudflare Workers Docs](mdc:https:/developers.cloudflare.com/workers)
+- [Hono Documentation](mdc:https:/hono.dev)
+- [TanStack Router Docs](mdc:https:/tanstack.com/router)
+- [Drizzle ORM Docs](mdc:https:/orm.drizzle.team)
+- [Grammy Bot Framework](mdc:https:/grammy.dev)
+
+### Debugging Commands
+```bash
+# Check types
+pnpm types
+
+# Build and check for errors
+pnpm build
+
+# Run linting
+pnpm lint
+
+# Check dependencies
+pnpm audit
+
+# Clear cache and reinstall
+rm -rf node_modules .wrangler dist && pnpm install
+```
+
+### Log Analysis
+- Check browser console for frontend errors
+- Review Cloudflare Workers logs for backend issues
+- Monitor database query performance
+- Track bot interaction logs

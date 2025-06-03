@@ -1,0 +1,125 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Development Guidelines
+
+## Code Organization
+
+### File Naming Conventions
+- Use kebab-case for file names: `user-profile.tsx`, `api-client.ts`
+- Use PascalCase for React components: `UserProfile.tsx`
+- Use camelCase for utility functions: `formatDate.ts`
+
+### Directory Structure
+- **Frontend components**: Place in [src/components/](mdc:src/components)
+- **UI primitives**: Place in [src/components/ui/](mdc:src/components/ui)
+- **Pages/Routes**: Place in [src/routes/](mdc:src/routes)
+- **API routes**: Place in [src/worker/routes/](mdc:src/worker/routes)
+- **Business logic**: Place in [src/worker/features/](mdc:src/worker/features)
+- **Services**: Place in [src/worker/services/](mdc:src/worker/services)
+
+## React Development
+
+### Component Guidelines
+- Use functional components with hooks
+- Prefer TypeScript interfaces for props
+- Use React 19 features like `use()` hook when appropriate
+- Implement proper error boundaries for production code
+
+### State Management
+- Use TanStack Query for server state
+- Use React's built-in state for local component state
+- Consider Zustand for complex client-side state if needed
+
+### Routing
+- Use TanStack Router for type-safe routing
+- Define routes in [src/routes/](mdc:src/routes) directory
+- Leverage route-based code splitting
+
+## Backend Development
+
+### API Design
+- Use Hono framework patterns from [src/worker/index.ts](mdc:src/worker/index.ts)
+- Implement proper error handling and validation with Zod
+- Follow RESTful conventions where appropriate
+- Use middleware for cross-cutting concerns
+
+### Database Operations
+- Use Drizzle ORM for all database operations
+- Define schema in [src/worker/services/db.ts](mdc:src/worker/services/db.ts)
+- Always use migrations for schema changes via `pnpm drizzle:update`
+- Test migrations locally before deploying
+
+### Telegram Bot
+- Bot logic should be in [src/worker/bot/](mdc:src/worker/bot) directory
+- Use Grammy framework patterns
+- Handle bot commands and callbacks properly
+- Implement proper error handling for bot interactions
+
+## Styling Guidelines
+
+### Tailwind CSS
+- Use Tailwind CSS 4 features and syntax
+- Leverage the configuration in [tailwind.config.js](mdc:tailwind.config.js)
+- Use semantic class names when creating custom components
+- Prefer utility classes over custom CSS
+
+### Component Styling
+- Use Radix UI primitives for accessible components
+- Implement consistent spacing and typography
+- Use CSS variables for theme customization
+- Follow mobile-first responsive design
+
+## TypeScript Best Practices
+
+### Type Safety
+- Use strict TypeScript configuration from [tsconfig.json](mdc:tsconfig.json)
+- Define proper interfaces for API responses
+- Use Zod schemas for runtime validation
+- Avoid `any` type - use `unknown` when necessary
+
+### Configuration
+- Frontend types: [tsconfig.app.json](mdc:tsconfig.app.json)
+- Worker types: [tsconfig.worker.json](mdc:tsconfig.worker.json)
+- Generate Cloudflare types with `pnpm types`
+
+## Testing Strategy
+
+### Unit Testing
+- Test business logic in isolation
+- Mock external dependencies
+- Use TypeScript for test files
+
+### Integration Testing
+- Test API endpoints with proper request/response cycles
+- Test database operations with test database
+- Test bot commands and responses
+
+## Deployment Guidelines
+
+### Local Development
+- Use `pnpm dev` for local development
+- Use `pnpm tunnel` for bot development with webhooks
+- Apply database migrations with `pnpm db:migrate`
+
+### Production Deployment
+- Build with `pnpm build` before deploying
+- Deploy with `pnpm deploy` to Cloudflare Workers
+- Apply remote migrations with `pnpm db:migrate:remote`
+- Monitor deployment through Cloudflare dashboard
+
+## Performance Considerations
+
+### Frontend Optimization
+- Use React 19 concurrent features
+- Implement proper code splitting with TanStack Router
+- Optimize bundle size with Vite
+- Use TanStack Query for efficient data fetching
+
+### Backend Optimization
+- Leverage Cloudflare Workers edge computing
+- Use D1 database efficiently with proper indexing
+- Implement caching strategies where appropriate
+- Monitor Worker performance and costs
