@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import type React from "react";
 
 import { useState } from "react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { apiClient } from "@/lib/api";
@@ -68,12 +68,15 @@ export default function RouteComponent() {
             <div key={userId} className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Avatar
-                  color={getColorFromId(Number(userId))}
                   className={`w-6 h-6 avatar-transition`}
+                  style={{
+                    backgroundColor: getColorFromId(Number(userId)),
+                  }}
                 >
+                  <AvatarImage src={user.user?.photoUrl ?? undefined} />
                   <AvatarFallback className="text-xs"></AvatarFallback>
                 </Avatar>
-                <span className="text-lg">{userId}</span>
+                <span className="text-lg">{user.user?.name ?? userId}</span>
               </div>
               <span className="font-medium">
                 ${(user.total * coefficient).toFixed(2)}

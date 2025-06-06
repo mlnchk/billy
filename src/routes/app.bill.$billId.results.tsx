@@ -137,8 +137,12 @@ export default function RouteComponent() {
                         style={{
                           backgroundColor: getColorFromId(Number(userId)),
                         }}
-                      />
-                      <span className="text-lg font-medium">{userId}</span>
+                      >
+                        <AvatarImage src={user.user?.photoUrl ?? undefined} />
+                      </Avatar>
+                      <span className="text-lg font-medium">
+                        {user.user?.name ?? userId}
+                      </span>
                     </div>
                     <span className="font-bold">${user.total}</span>
                   </div>

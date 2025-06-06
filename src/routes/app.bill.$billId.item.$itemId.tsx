@@ -1,7 +1,7 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 
-import { Avatar } from "@/components/ui/avatar";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, Plus, Minus } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
@@ -47,17 +47,16 @@ export default function RouteComponent() {
 
   // Prepare data for pie chart
   const chartData = voters.map((voter) => ({
-    name: voter.userId,
+    name: voter.user.name ?? voter.userId,
     value: voter.share,
-    color: getColorFromId(Number(voter.userId)),
+    color: getColorFromId(Number(voter.user.id)),
   }));
 
   // Handle share increment/decrement
   const updateShares = (userId: number, increment: boolean) => {
     setVoters((prev) =>
       prev.map((voter) => {
-        console.log(voter.userId, userId);
-        if (voter.userId === userId) {
+        if (voter.user.id === userId) {
           const newShare = increment
             ? voter.share + 1
             : Math.max(1, voter.share - 1);
@@ -102,22 +101,29 @@ export default function RouteComponent() {
         <div className="px-4 space-y-3">
           {voters.map((voter) => (
             <div
-              key={voter.userId}
+              key={voter.user.id}
               className="flex items-center justify-between"
             >
               <div className="flex items-center gap-3">
                 <Avatar
                   className={`w-6 h-6 avatar-transition`}
                   style={{
-                    backgroundColor: getColorFromId(Number(voter.userId)),
+                    backgroundColor: getColorFromId(Number(voter.user.id)),
                   }}
-                />
+                >
+                  <AvatarImage
+                    src={voter.user.photoUrl ?? undefined}
+                    alt={voter.user.name ?? undefined}
+                  />
+                </Avatar>
 
-                <span className="text-lg">{voter.userId}</span>
+                <span className="text-lg">
+                  {voter.user.name ?? voter.userId}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => updateShares(voter.userId, false)}
+                  onClick={() => updateShares(voter.user.id, false)}
                   className="text-gray-500 hover:text-gray-700"
                   aria-label="Decrease share"
                 >
@@ -127,7 +133,7 @@ export default function RouteComponent() {
                   {voter.share}
                 </div>
                 <button
-                  onClick={() => updateShares(voter.userId, true)}
+                  onClick={() => updateShares(voter.user.id, true)}
                   className="text-gray-500 hover:text-gray-700"
                   aria-label="Increase share"
                 >

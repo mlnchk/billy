@@ -81,8 +81,14 @@ export function createVoteRepo({ db }: { db: DB }) {
         .select({
           userId: itemAssignments.userId,
           quantity: itemAssignments.quantity,
+          user: {
+            id: users.id,
+            name: users.name,
+            photoUrl: users.photoUrl,
+          },
         })
         .from(itemAssignments)
+        .innerJoin(users, eq(itemAssignments.userId, users.id))
         .where(eq(itemAssignments.billItemId, billItemId))
         .all();
     },

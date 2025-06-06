@@ -7,7 +7,15 @@ import type { BillItem } from "../../services/db"; // Import BillItem type if ne
 // Define the structure expected by the API route
 interface BillItemDetailsResponse {
   billItem: BillItem;
-  userVotes: { userId: number; share: number }[];
+  userVotes: {
+    userId: number;
+    share: number;
+    user: {
+      id: number;
+      name: string | null;
+      photoUrl: string | null;
+    };
+  }[];
 }
 
 export function createBillService({
@@ -80,9 +88,10 @@ export function createBillService({
 
       return {
         billItem: billItem,
-        userVotes: userVotesForItem.map(({ userId, quantity }) => ({
+        userVotes: userVotesForItem.map(({ userId, quantity, user }) => ({
           userId,
           share: quantity,
+          user,
         })),
       };
     },
@@ -106,10 +115,28 @@ export function createBillService({
         })),
       );
 
-      // Perform the final mapping here
+      // Create a map of user IDs to user information
+      const userMap = new Map();
+      billWithVotes.votes.forEach((vote) => {
+        userMap.set(vote.user.id, vote.user);
+      });
+
+      // Include user information in userSelections
+      const enhancedUserSelections = Object.fromEntries(
+        Array.from(calculationResult.userSelections.entries()).map(
+          ([userId, selection]) => [
+            userId,
+            {
+              ...selection,
+              user: userMap.get(userId),
+            },
+          ],
+        ),
+      );
+
       return {
         ...calculationResult,
-        userSelections: Object.fromEntries(calculationResult.userSelections),
+        userSelections: enhancedUserSelections,
         bill: billWithVotes.bill,
       };
     },
