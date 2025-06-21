@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import CircularProgress from "@/components/circular-progress";
 import {
   Accordion,
   AccordionContent,
@@ -103,13 +102,6 @@ export default function RouteComponent() {
 
           {/* User items */}
           {currentUserWithSelections.itemsWithProportion.map((item) => {
-            const totalItemCost =
-              item.item.priceTotal ??
-              (item.item.pricePerUnit ?? 0) * (item.item.quantity ?? 1);
-            const percentage =
-              totalItemCost > 0
-                ? (item.proportionalPrice / totalItemCost) * 100
-                : 0;
             return (
               <div
                 key={item.item.id}
@@ -117,11 +109,6 @@ export default function RouteComponent() {
                 onClick={() => handleItemClick(item.item.id)}
               >
                 <div className="flex items-center gap-2">
-                  <CircularProgress
-                    percentage={percentage}
-                    size={20}
-                    strokeWidth={3}
-                  />
                   <span className="text-base">{item.item.nameEnglish}</span>
                 </div>
                 <span className="text-gray-500">
@@ -132,9 +119,6 @@ export default function RouteComponent() {
             );
           })}
         </div>
-
-        {/* Spacer */}
-        <div className="h-6 bg-gray-50"></div>
 
         {/* Other Users Section */}
         <Accordion type="multiple" className="w-full">
@@ -169,13 +153,6 @@ export default function RouteComponent() {
                 </AccordionTrigger>
                 <AccordionContent>
                   {user.itemsWithProportion.map((item, index) => {
-                    const totalItemCost =
-                      item.item.priceTotal ??
-                      (item.item.pricePerUnit ?? 0) * (item.item.quantity ?? 1);
-                    const percentage =
-                      totalItemCost > 0
-                        ? (item.proportionalPrice / totalItemCost) * 100
-                        : 0;
                     return (
                       <div
                         key={index}
@@ -183,11 +160,6 @@ export default function RouteComponent() {
                         onClick={() => handleItemClick(item.item.id)}
                       >
                         <div className="flex items-center gap-2">
-                          <CircularProgress
-                            percentage={percentage}
-                            size={20}
-                            strokeWidth={3}
-                          />
                           <span className="text-base">
                             {item.item.nameEnglish}
                           </span>
@@ -232,11 +204,6 @@ export default function RouteComponent() {
                   onClick={() => handleItemClick(item.id)}
                 >
                   <div className="flex items-center gap-2">
-                    <CircularProgress
-                      percentage={0}
-                      size={20}
-                      strokeWidth={3}
-                    />
                     <span className="text-base">{item.nameEnglish}</span>
                   </div>
                   <span className="text-gray-500">

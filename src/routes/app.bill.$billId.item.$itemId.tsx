@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, Plus, Minus } from "lucide-react";
-import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { apiClient } from "@/lib/api";
 import { getColorFromId } from "@/lib/colors";
 import { useMutation } from "@tanstack/react-query";
@@ -147,30 +146,6 @@ export default function RouteComponent() {
               </div>
             </div>
           ))}
-        </div>
-
-        {/* Pie Chart */}
-        <div className="h-64 mt-6">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={chartData}
-                cx="50%"
-                cy="50%"
-                outerRadius={80}
-                dataKey="value"
-              >
-                {chartData.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={entry.color}
-                    stroke="#ffffff"
-                    strokeWidth={2}
-                  />
-                ))}
-              </Pie>
-            </PieChart>
-          </ResponsiveContainer>
         </div>
       </div>
 
