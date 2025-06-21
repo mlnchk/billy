@@ -11,6 +11,9 @@ importers:
       '@ai-sdk/google':
         specifier: ^1.2.10
         version: 1.2.10(zod@3.24.2)
+      '@hono/trpc-server':
+        specifier: 0.4.0
+        version: 0.4.0(@trpc/server@11.1.0(typescript@5.8.2))(hono@4.7.5)
       '@hono/zod-validator':
         specifier: ^0.4.3
         version: 0.4.3(hono@4.7.5)(zod@3.24.2)
@@ -44,6 +47,15 @@ importers:
       '@telegram-apps/sdk-react':
         specifier: ^3.2.4
         version: 3.2.4(@types/react@19.0.10)(react@19.0.0)(typescript@5.8.2)
+      '@trpc/client':
+        specifier: 11.1.0
+        version: 11.1.0(@trpc/server@11.1.0(typescript@5.8.2))(typescript@5.8.2)
+      '@trpc/server':
+        specifier: 11.1.0
+        version: 11.1.0(typescript@5.8.2)
+      '@trpc/tanstack-react-query':
+        specifier: 11.1.0
+        version: 11.1.0(@tanstack/react-query@5.74.0(react@19.0.0))(@trpc/client@11.1.0(@trpc/server@11.1.0(typescript@5.8.2))(typescript@5.8.2))(@trpc/server@11.1.0(typescript@5.8.2))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.8.2)
       ai:
         specifier: ^4.3.5
         version: 4.3.5(react@19.0.0)(zod@3.24.2)
@@ -896,6 +908,13 @@ packages:
     resolution: {integrity: sha512-AgJgKLooZyQnzMfoFg5Mo/aHM+HGBC9ExpXIjNqGimYTRgNbL/K7X5EM1kR2JY90BNKk9lo6Usq1T/nWFdT7TQ==}
     hasBin: true
 
+  '@hono/trpc-server@0.4.0':
+    resolution: {integrity: sha512-LGlJfCmNIGMwcknZEIYdujVMs9OkNVazhpOhaz3kTWOXvNL660VOHpvvktosCiJrajyBY1RtIJKQ+IKaQvNuSg==}
+    engines: {node: '>=16.0.0'}
+    peerDependencies:
+      '@trpc/server': ^10.10.0 || >11.0.0-rc
+      hono: '>=4.*'
+
   '@hono/zod-validator@0.4.3':
     resolution: {integrity: sha512-xIgMYXDyJ4Hj6ekm9T9Y27s080Nl9NXHcJkOvkXPhubOLj8hZkOL8pDnnXfvCf5xEE8Q4oMFenQUZZREUY2gqQ==}
     peerDependencies:
@@ -1705,6 +1724,27 @@ packages:
 
   '@telegram-apps/types@2.0.0':
     resolution: {integrity: sha512-yF499FJK82a2IDNDAQdrmVH3sgFZl/QFNdVZKgWpgtunIVJ1fres5wi9+4aUBRVIdQwZOZZqB/AOvYYuYXsq3Q==}
+
+  '@trpc/client@11.1.0':
+    resolution: {integrity: sha512-Q3pL4p7AddxI/ZJTEFo1utKSdasDFjZPECIPsKDkthEt52k530JkYVltTdLkYFKrNWXKKBo8MN7NwchelczoRw==}
+    peerDependencies:
+      '@trpc/server': 11.1.0
+      typescript: '>=5.7.2'
+
+  '@trpc/server@11.1.0':
+    resolution: {integrity: sha512-uAJ7ikejeujVkf53XFJ/0W8nr7bDjul+Szk5Rsepq97Hb/WS1RkRXdyX4KqAyCE9b1vDFCJVJwSxiIZdRtbTZQ==}
+    peerDependencies:
+      typescript: '>=5.7.2'
+
+  '@trpc/tanstack-react-query@11.1.0':
+    resolution: {integrity: sha512-BRK5QWKAVHqvDyqjnGYp+53sgb5xE3MB1+fxrBKylVR1lFEeFQvUHwwY3Dtr/Pcq0mmxALytCsBVEGTiQCHnEw==}
+    peerDependencies:
+      '@tanstack/react-query': ^5.67.1
+      '@trpc/client': 11.1.0
+      '@trpc/server': 11.1.0
+      react: '>=18.2.0'
+      react-dom: '>=18.2.0'
+      typescript: '>=5.7.2'
 
   '@types/babel__core@7.20.5':
     resolution: {integrity: sha512-qoQprZvz5wQFJwMDqeseRXWv3rqMvhgpbXFfVyWhbx9X47POIA6i/+dXefEmZKoAgOaTdaIgNSMqMIU61yRyzA==}
@@ -3935,6 +3975,11 @@ snapshots:
       cac: 6.7.14
       mime-types: 2.1.35
 
+  '@hono/trpc-server@0.4.0(@trpc/server@11.1.0(typescript@5.8.2))(hono@4.7.5)':
+    dependencies:
+      '@trpc/server': 11.1.0(typescript@5.8.2)
+      hono: 4.7.5
+
   '@hono/zod-validator@0.4.3(hono@4.7.5)(zod@3.24.2)':
     dependencies:
       hono: 4.7.5
@@ -4668,6 +4713,24 @@ snapshots:
   '@telegram-apps/types@1.2.1': {}
 
   '@telegram-apps/types@2.0.0': {}
+
+  '@trpc/client@11.1.0(@trpc/server@11.1.0(typescript@5.8.2))(typescript@5.8.2)':
+    dependencies:
+      '@trpc/server': 11.1.0(typescript@5.8.2)
+      typescript: 5.8.2
+
+  '@trpc/server@11.1.0(typescript@5.8.2)':
+    dependencies:
+      typescript: 5.8.2
+
+  '@trpc/tanstack-react-query@11.1.0(@tanstack/react-query@5.74.0(react@19.0.0))(@trpc/client@11.1.0(@trpc/server@11.1.0(typescript@5.8.2))(typescript@5.8.2))(@trpc/server@11.1.0(typescript@5.8.2))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.8.2)':
+    dependencies:
+      '@tanstack/react-query': 5.74.0(react@19.0.0)
+      '@trpc/client': 11.1.0(@trpc/server@11.1.0(typescript@5.8.2))(typescript@5.8.2)
+      '@trpc/server': 11.1.0(typescript@5.8.2)
+      react: 19.0.0
+      react-dom: 19.0.0(react@19.0.0)
+      typescript: 5.8.2
 
   '@types/babel__core@7.20.5':
     dependencies:

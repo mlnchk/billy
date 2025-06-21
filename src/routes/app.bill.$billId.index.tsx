@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { apiClient } from "@/lib/api";
+import { trpc } from "@/router";
 import { getColorFromId } from "@/lib/colors";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 
@@ -14,15 +14,7 @@ export const Route = createFileRoute("/app/bill/$billId/")({
   loader: async ({ params }) => {
     const { billId } = params;
 
-    const response = await apiClient.bill[":billId"].$get({
-      param: { billId },
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch bill");
-    }
-
-    return response.json();
+    return trpc.bill.get.query({ billId: Number(billId) });
   },
 });
 
@@ -37,16 +29,10 @@ function RouteComponent() {
 
   const { mutateAsync: updateVotes, isPending: isUpdatingVotes } = useMutation({
     async mutationFn() {
-      const response = await apiClient.bill[":billId"].vote.$post({
-        param: { billId },
-        json: { itemIds: selectedItemIds },
+      return trpc.bill.vote.mutate({
+        billId: Number(billId),
+        itemIds: selectedItemIds,
       });
-
-      if (!response.ok) {
-        throw new Error("Failed to update votes");
-      }
-
-      return response.json();
     },
 
     onSuccess() {
