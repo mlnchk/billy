@@ -27,7 +27,6 @@ export default function CircularProgress({
   // Calculate proportional gap based on stroke width and radius
   // This ensures gaps are visible even at small sizes
   const circumference = 2 * Math.PI * radius;
-  const segmentArcLength = circumference / 6;
   const gapLength = strokeWidth * 1.5; // Gap length proportional to stroke width
   const gapAngle = (gapLength / circumference) * 360; // Convert gap length to angle
   const actualSegmentAngle = segmentAngle - gapAngle;

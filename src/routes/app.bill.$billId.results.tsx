@@ -3,7 +3,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import CircularProgress from "@/components/circular-progress";
-import { Clock } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
