@@ -7,6 +7,7 @@ import { createBillService } from "../features/bill/service";
 import { createAiService } from "../services/ai";
 import { createVoteService } from "../features/vote/service";
 import { createUserService } from "../features/user/service";
+import { aggregateVotes } from "../utils";
 
 export const apiRouter = new Hono<{
   Bindings: Env;
@@ -174,10 +175,10 @@ export const apiRouter = new Hono<{
 
       await voteService.voteForBill({
         billId: Number(billId),
-        votes: itemIds.map((itemId) => ({
+        votes: aggregateVotes(itemIds).map(({ itemId, quantity }) => ({
           userId,
           itemId,
-          quantity: 1,
+          quantity,
         })),
       });
 

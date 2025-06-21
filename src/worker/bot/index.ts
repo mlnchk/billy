@@ -5,6 +5,7 @@ import { startCommand } from "./commands/start.ts";
 import { createBillService } from "../features/bill/service.ts";
 import { createUserService } from "../features/user/service.ts";
 import { createVoteService } from "../features/vote/service.ts";
+import { aggregateVotes } from "../utils";
 import { InlineKeyboardMarkup } from "grammy/types";
 
 // Set up bot commands
@@ -235,10 +236,10 @@ export const createBot = async ({
 
       await voteService.voteForBill({
         billId,
-        votes: votes.map((itemId) => ({
+        votes: aggregateVotes(votes).map(({ itemId, quantity }) => ({
           userId,
           itemId,
-          quantity: 1, // TODO: quantity should be inferred from array item count
+          quantity,
         })),
       });
 
