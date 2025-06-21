@@ -123,9 +123,7 @@ export default function RouteComponent() {
                     size={20}
                     strokeWidth={3}
                   />
-                  <span className="text-base">
-                    {item.item.id}. {item.item.nameEnglish}
-                  </span>
+                  <span className="text-base">{item.item.nameEnglish}</span>
                 </div>
                 <span className="text-gray-500">
                   {currencySymbol}
@@ -192,7 +190,7 @@ export default function RouteComponent() {
                             strokeWidth={3}
                           />
                           <span className="text-base">
-                            {item.item.id}. {item.item.nameEnglish}
+                            {item.item.nameEnglish}
                           </span>
                         </div>
                         <span className="text-gray-500">
@@ -240,9 +238,7 @@ export default function RouteComponent() {
                       size={20}
                       strokeWidth={3}
                     />
-                    <span className="text-base">
-                      {item.id}. {item.nameEnglish}
-                    </span>
+                    <span className="text-base">{item.nameEnglish}</span>
                   </div>
                   <span className="text-gray-500">
                     {currencySymbol}
