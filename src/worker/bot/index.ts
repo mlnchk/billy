@@ -177,7 +177,7 @@ export const createBot = async ({
             Object.entries(calculationResult.userSelections),
           ),
         },
-        "USD", // TODO: get currency from bill
+        calculationResult.bill.currency,
       );
 
       await ctx.reply(calcMsg, {

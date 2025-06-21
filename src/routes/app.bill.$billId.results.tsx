@@ -12,6 +12,7 @@ import {
 import { apiClient } from "@/lib/api";
 import { getColorFromId } from "@/lib/colors";
 import { useAuth } from "@/lib/auth/use-auth";
+import { getCurrencySymbol } from "@/lib/currency";
 
 export const Route = createFileRoute("/app/bill/$billId/results")({
   component: RouteComponent,
@@ -31,7 +32,8 @@ export const Route = createFileRoute("/app/bill/$billId/results")({
 
 export default function RouteComponent() {
   const navigate = Route.useNavigate();
-  const { userSelections, unvotedItems } = Route.useLoaderData();
+  const { userSelections, unvotedItems, bill } = Route.useLoaderData();
+  const currencySymbol = getCurrencySymbol(bill.currency);
 
   const handleRevote = () => {
     navigate({ to: ".." });
@@ -94,7 +96,8 @@ export default function RouteComponent() {
               </span>
             </div>
             <span className="font-bold">
-              ${currentUserWithSelections.total}
+              {currencySymbol}
+              {currentUserWithSelections.total}
             </span>
           </div>
 
@@ -111,7 +114,10 @@ export default function RouteComponent() {
                   {item.item.id}. {item.item.nameEnglish}
                 </span>
               </div>
-              <span className="text-gray-500">${item.proportionalPrice}</span>
+              <span className="text-gray-500">
+                {currencySymbol}
+                {item.proportionalPrice}
+              </span>
             </div>
           ))}
         </div>
@@ -144,7 +150,10 @@ export default function RouteComponent() {
                         {user.user?.name ?? userId}
                       </span>
                     </div>
-                    <span className="font-bold">${user.total}</span>
+                    <span className="font-bold">
+                      {currencySymbol}
+                      {user.total}
+                    </span>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent>
@@ -161,7 +170,8 @@ export default function RouteComponent() {
                         </span>
                       </div>
                       <span className="text-gray-500">
-                        ${item.proportionalPrice}
+                        {currencySymbol}
+                        {item.proportionalPrice}
                       </span>
                     </div>
                   ))}
@@ -179,7 +189,7 @@ export default function RouteComponent() {
                   <span className="text-lg font-medium">Unvoted</span>
                 </div>
                 <span className="font-bold">
-                  $
+                  {currencySymbol}
                   {unvotedItems.reduce(
                     (acc, item) =>
                       acc +
@@ -203,7 +213,10 @@ export default function RouteComponent() {
                       {item.id}. {item.nameEnglish}
                     </span>
                   </div>
-                  <span className="text-gray-500">${item.priceTotal}</span>
+                  <span className="text-gray-500">
+                    {currencySymbol}
+                    {item.priceTotal}
+                  </span>
                 </div>
               ))}
             </AccordionContent>
