@@ -5,7 +5,7 @@ import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, Plus, Minus } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
-import { apiClient } from "@/lib/api";
+import { trpc } from "@/router";
 import { getColorFromId } from "@/lib/colors";
 import { useMutation } from "@tanstack/react-query";
 import { getCurrencySymbol } from "@/lib/currency";
@@ -15,15 +15,7 @@ export const Route = createFileRoute("/app/bill/$billId/item/$itemId")({
   loader: async ({ params }) => {
     const { billId, itemId } = params;
 
-    const response = await apiClient.bill[":billId"].items[":itemId"].$get({
-      param: { billId, itemId },
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch bill item");
-    }
-
-    return response.json();
+    return trpc.bill.getItem.query({ itemId: Number(itemId) });
   },
 });
 
@@ -37,9 +29,9 @@ export default function RouteComponent() {
 
   const { mutateAsync: updateVotes } = useMutation({
     mutationFn: async () => {
-      await apiClient.bill[":billId"].items[":itemId"].edit.$post({
-        param: { billId, itemId },
-        json: voters,
+      await trpc.bill.editItem.mutate({
+        itemId: Number(itemId),
+        votes: voters,
       });
     },
     onSuccess: () => {

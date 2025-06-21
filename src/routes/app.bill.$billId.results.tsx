@@ -9,7 +9,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { apiClient } from "@/lib/api";
+import { trpc } from "@/router";
 import { getColorFromId } from "@/lib/colors";
 import { useAuth } from "@/lib/auth/use-auth";
 import { getCurrencySymbol } from "@/lib/currency";
@@ -18,15 +18,7 @@ export const Route = createFileRoute("/app/bill/$billId/results")({
   component: RouteComponent,
   loader: async ({ params }) => {
     const { billId } = params;
-    const response = await apiClient.bill[":billId"].results.$get({
-      param: { billId },
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch results");
-    }
-
-    return response.json();
+    return trpc.bill.results.query({ billId: Number(billId) });
   },
 });
 

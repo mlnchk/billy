@@ -5,24 +5,15 @@ import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { apiClient } from "@/lib/api";
+import { trpc } from "@/router";
 import { getColorFromId } from "@/lib/colors";
 import { getCurrencySymbol } from "@/lib/currency";
 
 export const Route = createFileRoute("/app/bill/$billId/summary")({
   component: RouteComponent,
   loader: async ({ params }) => {
-    // TODO: get bill with results
     const { billId } = params;
-    const response = await apiClient.bill[":billId"].results.$get({
-      param: { billId },
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch results");
-    }
-
-    return response.json();
+    return trpc.bill.results.query({ billId: Number(billId) });
   },
 });
 
