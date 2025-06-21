@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { apiClient } from "@/lib/api";
 import { getColorFromId } from "@/lib/colors";
+import { getCurrencySymbol } from "@/lib/currency";
 
 export const Route = createFileRoute("/app/bill/$billId/summary")({
   component: RouteComponent,
@@ -28,6 +29,7 @@ export const Route = createFileRoute("/app/bill/$billId/summary")({
 export default function RouteComponent() {
   const navigate = Route.useNavigate();
   const { userSelections, bill } = Route.useLoaderData();
+  const currencySymbol = getCurrencySymbol(bill.currency);
   const defaultCoefficient = bill.subtotal ? bill.total / bill.subtotal : 1;
 
   const [coefficient, setCoefficient] = useState(defaultCoefficient);
@@ -79,7 +81,8 @@ export default function RouteComponent() {
                 <span className="text-lg">{user.user?.name ?? userId}</span>
               </div>
               <span className="font-medium">
-                ${(user.total * coefficient).toFixed(2)}
+                {currencySymbol}
+                {(user.total * coefficient).toFixed(2)}
               </span>
             </div>
           ))}
@@ -107,19 +110,28 @@ export default function RouteComponent() {
           {/* Subtotal */}
           <div className="flex items-center justify-between">
             <span className="text-lg">Subtotal</span>
-            <span className="text-lg">${bill.subtotal?.toFixed(2)}</span>
+            <span className="text-lg">
+              {currencySymbol}
+              {bill.subtotal?.toFixed(2)}
+            </span>
           </div>
 
           {/* Adjusted subtotal */}
           <div className="flex items-center justify-between">
             <span className="text-lg">Adjusted subtotal</span>
-            <span className="text-lg">${adjustedTotal.toFixed(2)}</span>
+            <span className="text-lg">
+              {currencySymbol}
+              {adjustedTotal.toFixed(2)}
+            </span>
           </div>
 
           {/* Total */}
           <div className="flex items-center justify-between">
             <span className="text-xl font-bold">Total</span>
-            <span className="text-xl font-bold">${bill.total.toFixed(2)}</span>
+            <span className="text-xl font-bold">
+              {currencySymbol}
+              {bill.total.toFixed(2)}
+            </span>
           </div>
         </div>
       </div>

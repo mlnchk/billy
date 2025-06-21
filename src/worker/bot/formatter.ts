@@ -1,4 +1,5 @@
 import { BillItem, BillWithItems } from "../services/db.ts";
+import { getCurrencySymbol } from "../../lib/currency.ts";
 
 function getPricePerUnit(item: BillItem): number {
   if (item.pricePerUnit) {
@@ -10,17 +11,6 @@ function getPricePerUnit(item: BillItem): number {
   return 0;
 }
 
-function getCurrencySymbol(currency: string): string {
-  return (
-    new Intl.NumberFormat("en", {
-      style: "currency",
-      currency,
-      currencyDisplay: "narrowSymbol",
-    })
-      .formatToParts(0)
-      .find((part) => part.type === "currency")?.value || currency
-  );
-}
 
 function formatBillItem(
   item: BillItem,

@@ -83,6 +83,7 @@ export function createBillRepo({ db }: { db: DB }) {
     async getBillItem(itemId: number) {
       return drizzleDb.query.billItems.findFirst({
         where: eq(billItems.id, itemId),
+        with: { bill: true },
       });
     },
   };

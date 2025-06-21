@@ -8,6 +8,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { apiClient } from "@/lib/api";
 import { getColorFromId } from "@/lib/colors";
 import { useMutation } from "@tanstack/react-query";
+import { getCurrencySymbol } from "@/lib/currency";
 
 export const Route = createFileRoute("/app/bill/$billId/item/$itemId")({
   component: RouteComponent,
@@ -29,7 +30,8 @@ export const Route = createFileRoute("/app/bill/$billId/item/$itemId")({
 export default function RouteComponent() {
   const navigate = Route.useNavigate();
   const { billId, itemId } = Route.useParams();
-  const { billItem, userVotes } = Route.useLoaderData();
+  const { billItem, userVotes, bill } = Route.useLoaderData();
+  const currencySymbol = getCurrencySymbol(bill.currency);
   const [voters, setVoters] = useState(userVotes);
   const router = useRouter();
 
@@ -88,7 +90,10 @@ export default function RouteComponent() {
             {billItem.nameEnglish}
           </h1>
         </div>
-        <span className="font-bold text-xl">${billItem.priceTotal}</span>
+        <span className="font-bold text-xl">
+          {currencySymbol}
+          {billItem.priceTotal}
+        </span>
       </div>
 
       <div className="flex-1 overflow-auto">

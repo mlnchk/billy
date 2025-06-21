@@ -2,11 +2,12 @@ import { createVoteRepo } from "../vote/repo";
 import { createBillRepo } from "./repo";
 import { AiService } from "../../services/ai";
 import { calculateBillSplit } from "../../services/calculator";
-import type { BillItem } from "../../services/db"; // Import BillItem type if needed
+import type { Bill, BillItem } from "../../services/db"; // Import Bill and BillItem types
 
 // Define the structure expected by the API route
 interface BillItemDetailsResponse {
   billItem: BillItem;
+  bill: Bill;
   userVotes: {
     userId: number;
     share: number;
@@ -82,12 +83,18 @@ export function createBillService({
         return null;
       }
 
+      const bill = billItem.bill;
+      if (!bill) {
+        return null;
+      }
+
       const userVotesForItem = await voteRepo.getVotesByBillItemId(
         params.itemId,
       );
 
       return {
-        billItem: billItem,
+        billItem,
+        bill,
         userVotes: userVotesForItem.map(({ userId, quantity, user }) => ({
           userId,
           share: quantity,
