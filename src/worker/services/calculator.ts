@@ -34,8 +34,12 @@ export function calculateBillSplit(
   const userSelections = new Map<UserId, UserSelection>();
 
   // Find unvoted items
-  const unvotedItems = bill.billItems.filter((item) => {
-    return !votes.some((vote) => vote.itemId === item.id);
+  const unvotedItems = bill.billItems.filter((item: BillItem) => {
+    const totalVotesForItem = votes
+      .filter((vote) => vote.itemId === item.id)
+      .reduce((acc, vote) => acc + vote.quantity, 0);
+
+    return totalVotesForItem < item.quantity;
   });
 
   // Process each vote and build user selections
@@ -43,7 +47,7 @@ export function calculateBillSplit(
     const { userId, itemId, quantity } = vote;
 
     // Find the corresponding item
-    const item = bill.billItems.find((item) => item.id === itemId);
+    const item = bill.billItems.find((item: BillItem) => item.id === itemId);
     if (!item) continue;
 
     // Initialize user selection if not exists

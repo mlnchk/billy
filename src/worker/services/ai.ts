@@ -56,7 +56,7 @@ const SYSTEM_PROMPT = `### Bill Extraction Assistant
 2. Translate items contextually to English
 3. Keep all numbers unchanged
 4. Detect currency from symbols/context (e.g., $=USD, ฿=THB, €=EUR)
-5. Don not use more than 3 decimal places for numbers
+5. Do not use more than 3 decimal places for numbers
 
 **Extract:**
 -  Item name (original + English)
