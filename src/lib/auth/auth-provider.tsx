@@ -1,5 +1,5 @@
-import { apiClient } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
+import { trpc } from "@/router";
 import { createContext, PropsWithChildren } from "react";
 
 export const AuthContext = createContext<{
@@ -13,18 +13,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     data: user,
     isLoading,
     isSuccess,
-  } = useQuery({
-    queryKey: ["user"],
-    queryFn: async () => {
-      const response = await apiClient.user.$get();
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch user");
-      }
-
-      return response.json();
-    },
-  });
+  } = useQuery(trpc.user.me.queryOptions());
 
   if (isLoading) {
     return <div>Loading...</div>;
