@@ -30,7 +30,6 @@ export function calculateBillSplit(
   bill: BillWithItems,
   votes: { userId: UserId; itemId: number; quantity: number }[],
 ): CalculationResult {
-  // Second pass: calculate proportional costs
   const userSelections = new Map<UserId, UserSelection>();
 
   // Find unvoted items
@@ -38,7 +37,14 @@ export function calculateBillSplit(
     return !votes.some((vote) => vote.itemId === item.id);
   });
 
-  // Process each vote and build user selections
+  // First pass: calculate total quantity voted for each item
+  const totalVotedQuantityByItem = new Map<number, number>();
+  for (const vote of votes) {
+    const currentQuantity = totalVotedQuantityByItem.get(vote.itemId) ?? 0;
+    totalVotedQuantityByItem.set(vote.itemId, currentQuantity + vote.quantity);
+  }
+
+  // Second pass: process each vote and build user selections
   for (const vote of votes) {
     const { userId, itemId, quantity } = vote;
 
@@ -57,8 +63,12 @@ export function calculateBillSplit(
     const userSelection = userSelections.get(userId)!;
     const itemCost = getTotalItemCost(item);
 
-    // Calculate proportional cost based on quantity
-    const proportion = quantity / item.quantity;
+    // Get total voted quantity for the item
+    const totalVotedQuantity = totalVotedQuantityByItem.get(itemId);
+    if (!totalVotedQuantity) continue; // Should not happen
+
+    // Calculate proportional cost
+    const proportion = quantity / totalVotedQuantity;
     const proportionalPrice = itemCost * proportion;
 
     // Add to user's selections
