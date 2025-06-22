@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useRouter, redirect } from "@tanstack/react-router";
 
 import { useState } from "react";
 
@@ -14,16 +14,31 @@ export const Route = createFileRoute("/app/bill/$billId/")({
   component: RouteComponent,
   loader: async ({ params }) => {
     const { billId } = params;
+    const [billRes, userRes] = await Promise.all([
+      apiClient.bill[":billId"].$get({ param: { billId } }),
+      apiClient.user.$get(),
+    ]);
 
-    const response = await apiClient.bill[":billId"].$get({
-      param: { billId },
-    });
-
-    if (!response.ok) {
+    if (!billRes.ok) {
       throw new Error("Failed to fetch bill");
     }
 
-    return response.json();
+    if (!userRes.ok) {
+      throw new Error("Failed to fetch user");
+    }
+
+    const billData = await billRes.json();
+    const user = await userRes.json();
+
+    const hasVoted = billData.votes.some(
+      (vote: { user: { id: number } }) => vote.user.id === user.id,
+    );
+
+    if (hasVoted) {
+      throw redirect({ to: "/app/bill/$billId/items", params: { billId } });
+    }
+
+    return billData;
   },
 });
 
