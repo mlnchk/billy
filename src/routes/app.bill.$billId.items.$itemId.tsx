@@ -17,9 +17,10 @@ import { getColorFromId } from "@/lib/colors";
 import { useMutation } from "@tanstack/react-query";
 import { getCurrencySymbol } from "@/lib/currency";
 
-export const Route = createFileRoute("/app/bill/$billId/item/$itemId")({
+export const Route = createFileRoute("/app/bill/$billId/items/$itemId")({
   component: RouteComponent,
   loader: async ({ params }) => {
+    console.log("params", params);
     const { billId, itemId } = params;
 
     const itemResponse = await apiClient.bill[":billId"].items[":itemId"].$get({
@@ -97,7 +98,7 @@ export default function RouteComponent() {
   const handleSave = async () => {
     // TODO: save the data here
     await updateVotes();
-    navigate({ to: "../../results" });
+    navigate({ to: ".." });
   };
 
   return (
@@ -106,7 +107,7 @@ export default function RouteComponent() {
       <div className="p-4 border-b flex justify-between items-center">
         <div className="flex items-center gap-2">
           <button
-            onClick={() => navigate({ to: "../../results" })}
+            onClick={() => navigate({ to: ".." })}
             className="text-gray-600 hover:text-gray-900"
           >
             <ChevronLeft className="w-5 h-5" />

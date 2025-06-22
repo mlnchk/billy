@@ -14,7 +14,7 @@ import { getColorFromId } from "@/lib/colors";
 import { useAuth } from "@/lib/auth/use-auth";
 import { getCurrencySymbol } from "@/lib/currency";
 
-export const Route = createFileRoute("/app/bill/$billId/results")({
+export const Route = createFileRoute("/app/bill/$billId/items/")({
   component: RouteComponent,
   loader: async ({ params }) => {
     const { billId } = params;
@@ -40,11 +40,14 @@ export default function RouteComponent() {
   };
 
   const handleItemClick = (itemId: number) => {
-    navigate({ to: `../item/${itemId}` });
+    // navigate({ to: "../totals" });
+    console.log("itemId", itemId);
+    navigate({ to: "./$itemId", params: { itemId: itemId.toString() } });
+    // navigate({ to: `../items/${itemId}` });
   };
 
   const handleComplete = () => {
-    navigate({ to: "../summary" });
+    navigate({ to: "../totals" });
   };
 
   const { user } = useAuth();
@@ -60,7 +63,7 @@ export default function RouteComponent() {
     <>
       {/* Header */}
       <div className="p-4 border-b flex justify-between items-center">
-        <h1 className="text-2xl font-bold title-transition">Split</h1>
+        <h1 className="text-2xl font-bold title-transition">Items</h1>
         <button
           onClick={handleRevote}
           className="text-gray-400 hover:text-gray-600"

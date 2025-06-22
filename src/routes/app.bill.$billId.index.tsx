@@ -70,7 +70,7 @@ function RouteComponent() {
       await updateVotes();
     }
 
-    navigate({ to: "./results" });
+    navigate({ to: "./items" });
   };
 
   return (

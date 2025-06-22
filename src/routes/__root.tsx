@@ -13,7 +13,7 @@ function RootComponent() {
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <main className="flex-1 max-w-md mx-auto w-full flex flex-col md:p-4">
-        <div className="md:border md:rounded-md overflow-hidden flex flex-col h-full">
+        <div className="md:border md:rounded-md overflow-hidden flex flex-col flex-1">
           <AuthProvider>
             <Outlet />
           </AuthProvider>

@@ -3,14 +3,12 @@ import type React from "react";
 
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { LayoutFooter } from "@/components/layout-footer";
 import { Input } from "@/components/ui/input";
 import { apiClient } from "@/lib/api";
 import { getColorFromId } from "@/lib/colors";
 import { getCurrencySymbol } from "@/lib/currency";
 
-export const Route = createFileRoute("/app/bill/$billId/summary")({
+export const Route = createFileRoute("/app/bill/$billId/totals")({
   component: RouteComponent,
   loader: async ({ params }) => {
     // TODO: get bill with results
@@ -48,14 +46,14 @@ export default function RouteComponent() {
 
   // Handle edit button click
   const handleEdit = () => {
-    navigate({ to: ".." });
+    navigate({ to: "../items" });
   };
 
   return (
-    <>
+    <div className="flex-1 flex flex-col">
       {/* Header */}
       <div className="p-4 border-b flex justify-between items-center">
-        <h1 className="text-2xl font-bold title-transition">Result</h1>
+        <h1 className="text-2xl font-bold title-transition">Totals</h1>
         <button
           onClick={handleEdit}
           className="text-gray-400 hover:text-gray-600"
@@ -64,7 +62,7 @@ export default function RouteComponent() {
         </button>
       </div>
 
-      <div className="flex-1 overflow-auto p-4">
+      <div className="flex-1 flex flex-col overflow-auto p-4">
         {/* Users list */}
         <div className="space-y-4 mb-8">
           {Object.entries(userSelections).map(([userId, user]) => (
@@ -136,12 +134,6 @@ export default function RouteComponent() {
           </div>
         </div>
       </div>
-
-      <LayoutFooter className="p-4">
-        <Button className="w-full py-6 text-lg bg-blue-400 hover:bg-blue-500 button-transition">
-          Complete
-        </Button>
-      </LayoutFooter>
-    </>
+    </div>
   );
 }
