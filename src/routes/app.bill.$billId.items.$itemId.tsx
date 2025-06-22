@@ -41,7 +41,12 @@ export const Route = createFileRoute("/app/bill/$billId/items/$itemId")({
     if (billResponse.ok) {
       const billData = await billResponse.json();
       const userMap = new Map(
-        billData.votes.map((v: any) => [v.user.id, v.user]),
+        billData.votes.map(
+          (v: { user: { id: number; name: string | null; photoUrl: string | null } }) => [
+            v.user.id,
+            v.user,
+          ],
+        ),
       );
       participants = Array.from(userMap.values());
     }

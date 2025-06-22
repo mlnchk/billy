@@ -36,7 +36,7 @@ export default function RouteComponent() {
   const currencySymbol = getCurrencySymbol(bill.currency);
 
   const handleRevote = () => {
-    navigate({ to: ".." });
+    navigate({ to: "../vote" });
   };
 
   const handleItemClick = (itemId: number) => {
