@@ -59,6 +59,16 @@ export default function RouteComponent() {
     ...userSelections[user.id],
   };
 
+  const otherUserIds = Object.keys(userSelections).filter(
+    (id) => id !== user.id.toString(),
+  );
+
+  const defaultAccordionValues = [
+    `user-${user.id}`,
+    ...otherUserIds.map((id) => `user-${id}`),
+    "unvoted",
+  ];
+
   return (
     <>
       {/* Header */}
@@ -76,56 +86,61 @@ export default function RouteComponent() {
       <div className="h-3 bg-gray-50"></div>
 
       <div className="flex-1 overflow-auto">
-        {/* Current User Section */}
-        <div className="border-b">
-          {/* User header */}
-          <div className="flex items-center justify-between p-4 border-b">
-            <div className="flex items-center gap-3">
-              <Avatar
-                className={`w-6 h-6 avatar-transition`}
-                style={{
-                  backgroundColor: getColorFromId(
-                    Number(currentUserWithSelections.id),
-                  ),
-                }}
-              >
-                <AvatarImage
-                  src={currentUserWithSelections.photoUrl ?? undefined}
-                />
-                <AvatarFallback className="text-xs"></AvatarFallback>
-              </Avatar>
-              <span className="text-lg font-medium">
-                {currentUserWithSelections.name}
-              </span>
-            </div>
-            <span className="font-bold">
-              {currencySymbol}
-              {currentUserWithSelections.total}
-            </span>
-          </div>
-
-          {/* User items */}
-          {currentUserWithSelections.itemsWithProportion.map((item) => {
-            return (
-              <div
-                key={item.item.id}
-                className="flex items-center justify-between py-2 px-4 border-b last:border-b-0 cursor-pointer hover:bg-gray-50"
-                onClick={() => handleItemClick(item.item.id)}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-base">{item.item.nameEnglish}</span>
+        <Accordion
+          type="multiple"
+          className="w-full"
+          defaultValue={defaultAccordionValues}
+        >
+          {/* Current User Section */}
+          <AccordionItem value={`user-${user.id}`} className="border-b">
+            <AccordionTrigger className="px-4 py-3 hover:no-underline">
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-3">
+                  <Avatar
+                    className={`w-6 h-6 avatar-transition`}
+                    style={{
+                      backgroundColor: getColorFromId(
+                        Number(currentUserWithSelections.id),
+                      ),
+                    }}
+                  >
+                    <AvatarImage
+                      src={currentUserWithSelections.photoUrl ?? undefined}
+                    />
+                    <AvatarFallback className="text-xs"></AvatarFallback>
+                  </Avatar>
+                  <span className="text-lg font-medium">
+                    {currentUserWithSelections.name}
+                  </span>
                 </div>
-                <span className="text-gray-500">
+                <span className="font-bold">
                   {currencySymbol}
-                  {item.proportionalPrice}
+                  {currentUserWithSelections.total}
                 </span>
               </div>
-            );
-          })}
-        </div>
+            </AccordionTrigger>
+            <AccordionContent>
+              {currentUserWithSelections.itemsWithProportion.map((item) => {
+                return (
+                  <div
+                    key={item.item.id}
+                    className="flex items-center justify-between py-2 px-4 border-b last:border-b-0 cursor-pointer hover:bg-gray-50"
+                    onClick={() => handleItemClick(item.item.id)}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">{item.item.nameEnglish}</span>
+                    </div>
+                    <span className="text-gray-500">
+                      {currencySymbol}
+                      {item.proportionalPrice}
+                    </span>
+                  </div>
+                );
+              })}
+            </AccordionContent>
+          </AccordionItem>
 
-        {/* Other Users Section */}
-        <Accordion type="multiple" className="w-full">
+          {/* Other Users Section */}
           {Object.entries(userSelections)
             .filter(([userId]) => userId !== user.id.toString())
             .map(([userId, user]) => (
