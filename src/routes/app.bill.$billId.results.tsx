@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { LayoutFooter } from "@/components/layout-footer";
 import {
   Accordion,
   AccordionContent,
@@ -217,15 +218,14 @@ export default function RouteComponent() {
         </Accordion>
       </div>
 
-      {/* Complete Button */}
-      <div className="p-4 mt-auto">
+      <LayoutFooter className="p-4">
         <Button
           onClick={handleComplete}
           className="w-full py-6 text-lg bg-blue-400 hover:bg-blue-500 button-transition"
         >
           Complete
         </Button>
-      </div>
+      </LayoutFooter>
     </>
   );
 }
