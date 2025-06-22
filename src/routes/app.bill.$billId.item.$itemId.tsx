@@ -4,6 +4,13 @@ import { useState } from "react";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { LayoutFooter } from "@/components/layout-footer";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ChevronLeft, Plus, Minus } from "lucide-react";
 import { apiClient } from "@/lib/api";
 import { getColorFromId } from "@/lib/colors";
@@ -15,22 +22,37 @@ export const Route = createFileRoute("/app/bill/$billId/item/$itemId")({
   loader: async ({ params }) => {
     const { billId, itemId } = params;
 
-    const response = await apiClient.bill[":billId"].items[":itemId"].$get({
+    const itemResponse = await apiClient.bill[":billId"].items[":itemId"].$get({
       param: { billId, itemId },
     });
 
-    if (!response.ok) {
+    if (!itemResponse.ok) {
       throw new Error("Failed to fetch bill item");
     }
 
-    return response.json();
+    const itemData = await itemResponse.json();
+
+    const billResponse = await apiClient.bill[":billId"].$get({
+      param: { billId },
+    });
+
+    let participants: (typeof itemData.userVotes)[number]["user"][] = [];
+    if (billResponse.ok) {
+      const billData = await billResponse.json();
+      const userMap = new Map(
+        billData.votes.map((v: any) => [v.user.id, v.user]),
+      );
+      participants = Array.from(userMap.values());
+    }
+
+    return { ...itemData, participants };
   },
 });
 
 export default function RouteComponent() {
   const navigate = Route.useNavigate();
   const { billId, itemId } = Route.useParams();
-  const { billItem, userVotes, bill } = Route.useLoaderData();
+  const { billItem, userVotes, bill, participants } = Route.useLoaderData();
   const currencySymbol = getCurrencySymbol(bill.currency);
   const [voters, setVoters] = useState(userVotes);
   const router = useRouter();
@@ -47,7 +69,6 @@ export default function RouteComponent() {
     },
   });
 
-
   // Handle share increment/decrement
   const updateShares = (userId: number, increment: boolean) => {
     setVoters((prev) =>
@@ -62,6 +83,16 @@ export default function RouteComponent() {
       }),
     );
   };
+
+  const addParticipant = (userId: number) => {
+    const user = participants.find((p) => p.id === userId);
+    if (!user) return;
+    setVoters((prev) => [...prev, { userId: user.id, share: 1, user }]);
+  };
+
+  const availableParticipants = participants.filter(
+    (p) => !voters.some((v) => v.user.id === p.id),
+  );
 
   const handleSave = async () => {
     // TODO: save the data here
@@ -142,6 +173,23 @@ export default function RouteComponent() {
             </div>
           ))}
         </div>
+
+        {availableParticipants.length > 0 && (
+          <div className="px-4 mt-4">
+            <Select onValueChange={(v) => addParticipant(Number(v))}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Add participant" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableParticipants.map((user) => (
+                  <SelectItem key={user.id} value={user.id.toString()}>
+                    {user.name ?? user.id}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       </div>
 
       <LayoutFooter className="p-4">
