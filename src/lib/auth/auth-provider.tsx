@@ -1,5 +1,6 @@
 import { apiClient } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
 import { createContext, PropsWithChildren } from "react";
 
 export const AuthContext = createContext<{
@@ -27,11 +28,19 @@ export function AuthProvider({ children }: PropsWithChildren) {
   });
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <Loader2 className="w-10 h-10 text-gray-500 animate-spin" />
+      </div>
+    );
   }
 
   if (!isSuccess) {
-    return <div>Auth error</div>;
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-gray-500">Auth error</div>
+      </div>
+    );
   }
 
   return (
