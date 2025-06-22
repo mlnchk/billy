@@ -221,12 +221,13 @@ export default function RouteComponent() {
         </Accordion>
       </div>
 
-      <LayoutFooter className="p-4">
+      <LayoutFooter className="p-2">
         <Button
           onClick={handleComplete}
-          className="w-full py-6 text-lg bg-blue-400 hover:bg-blue-500 button-transition"
+          variant="ghost"
+          className="w-full py-6 text-lg text-gray-500 button-transition"
         >
-          Complete
+          Calculate totals →
         </Button>
       </LayoutFooter>
     </>

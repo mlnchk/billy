@@ -193,7 +193,7 @@ export default function RouteComponent() {
         )}
       </div>
 
-      <LayoutFooter className="p-4">
+      <LayoutFooter className="p-2">
         <Button
           onClick={handleSave}
           className="w-full py-6 text-lg bg-blue-400 hover:bg-blue-500 button-transition"

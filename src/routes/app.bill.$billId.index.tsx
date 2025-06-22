@@ -134,7 +134,7 @@ function RouteComponent() {
         })}
       </div>
 
-      <LayoutFooter className="p-4">
+      <LayoutFooter className="p-2">
         <Button
           className={cn(
             "w-full py-6 text-lg button-transition",
