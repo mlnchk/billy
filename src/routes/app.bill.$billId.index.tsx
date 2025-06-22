@@ -4,6 +4,7 @@ import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { LayoutFooter } from "@/components/layout-footer";
 import { cn } from "@/lib/utils";
 import { apiClient } from "@/lib/api";
 import { getColorFromId } from "@/lib/colors";
@@ -133,8 +134,7 @@ function RouteComponent() {
         })}
       </div>
 
-      {/* Footer Button */}
-      <div className="p-4 mt-auto">
+      <LayoutFooter className="p-4">
         <Button
           className={cn(
             "w-full py-6 text-lg button-transition",
@@ -147,7 +147,7 @@ function RouteComponent() {
         >
           {isUpdatingVotes ? "Updating..." : hasSelections ? "Done" : "Skip"}
         </Button>
-      </div>
+      </LayoutFooter>
     </>
   );
 }

@@ -3,6 +3,7 @@ import { useState } from "react";
 
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { LayoutFooter } from "@/components/layout-footer";
 import { ChevronLeft, Plus, Minus } from "lucide-react";
 import { apiClient } from "@/lib/api";
 import { getColorFromId } from "@/lib/colors";
@@ -46,12 +47,6 @@ export default function RouteComponent() {
     },
   });
 
-  // Prepare data for pie chart
-  const chartData = voters.map((voter) => ({
-    name: voter.user.name ?? voter.userId,
-    value: voter.share,
-    color: getColorFromId(Number(voter.user.id)),
-  }));
 
   // Handle share increment/decrement
   const updateShares = (userId: number, increment: boolean) => {
@@ -149,15 +144,14 @@ export default function RouteComponent() {
         </div>
       </div>
 
-      {/* Save Button */}
-      <div className="p-4 mt-auto">
+      <LayoutFooter className="p-4">
         <Button
           onClick={handleSave}
           className="w-full py-6 text-lg bg-blue-400 hover:bg-blue-500 button-transition"
         >
           Save
         </Button>
-      </div>
+      </LayoutFooter>
     </>
   );
 }
