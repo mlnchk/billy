@@ -15,7 +15,6 @@ const commands = [
     description:
       "Calculate split and show who pays what (reply to bill analysis)",
   },
-  { command: "webapp", description: "Debug: Open web app with bill ID 1" },
   { command: "help", description: "Show help information" },
 ];
 
@@ -31,7 +30,7 @@ const createWebAppInlineKeyboard = (
   const url = getTelegramAppUrl(botUsername, billId);
 
   return {
-    inline_keyboard: [[{ text: "Open in Web App", url }]],
+    inline_keyboard: [[{ text: "Open in App", url }]],
   };
 };
 

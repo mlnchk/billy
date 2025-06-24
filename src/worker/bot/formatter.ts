@@ -11,7 +11,6 @@ function getPricePerUnit(item: BillItem): number {
   return 0;
 }
 
-
 function formatBillItem(
   item: BillItem,
   { currency, withPrice }: { currency: string; withPrice: boolean },
@@ -75,11 +74,7 @@ export function formatBillAnalysis(bill: BillWithItems): string {
       ? "\n\n" + summaryLines.map((line) => `💰 ${line}`).join("\n")
       : "";
 
-  return [
-    "Dear 🪿and 🦢,\nReply to this message with numbers of your items:\n",
-    ...items,
-    summary,
-  ].join("\n");
+  return ["Vote for your items in app:\n", ...items, summary].join("\n");
 }
 
 interface UserSelection {
