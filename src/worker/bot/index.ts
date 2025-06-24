@@ -100,7 +100,12 @@ export const createBot = async ({
       await ctx.api.sendChatAction(ctx.chat.id, "typing");
 
       // deleting action message
-      await ctx.api.deleteMessage(ctx.chat.id, ctx.message.message_id);
+      await ctx.api
+        .deleteMessage(ctx.chat.id, ctx.message.message_id)
+        .catch((error) => {
+          // probably not enough rights to delete message
+          console.error("Can't delete message:", error);
+        });
 
       const { bill, items } = await billService.parseAndSaveBill({
         chatId: ctx.chat.id,
@@ -121,7 +126,12 @@ export const createBot = async ({
       });
 
       // deleting parsing message
-      await ctx.api.deleteMessage(ctx.chat.id, parsingMsg.message_id);
+      await ctx.api
+        .deleteMessage(ctx.chat.id, parsingMsg.message_id)
+        .catch((error) => {
+          // probably not enough rights to delete message
+          console.error("Can't delete message:", error);
+        });
 
       // await ctx.api.pinChatMessage(ctx.chat.id, summaryMsg.message_id); // Bad Request: not enough rights to manage pinned messages in the chat
     } catch (error) {
@@ -185,7 +195,10 @@ export const createBot = async ({
         reply_markup: createWebAppInlineKeyboard(botUsername, billId),
       });
 
-      await ctx.deleteMessage();
+      await ctx.deleteMessage().catch((error) => {
+        // probably not enough rights to delete message
+        console.error("Can't delete message:", error);
+      });
     } catch (error) {
       console.error("Error processing calculate command:", error);
       await ctx.reply(
@@ -241,7 +254,12 @@ export const createBot = async ({
         })),
       });
 
-      await ctx.api.deleteMessage(ctx.chat.id, ctx.message.message_id);
+      await ctx.api
+        .deleteMessage(ctx.chat.id, ctx.message.message_id)
+        .catch((error) => {
+          // probably not enough rights to delete message
+          console.error("Can't delete message:", error);
+        });
 
       await ctx.reply(`☑️ ${ctx.from.first_name}: ${votes.join(", ")}`, {
         reply_parameters: { message_id: billMessageId },
