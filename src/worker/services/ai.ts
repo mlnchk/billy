@@ -1,4 +1,4 @@
-import { generateObject } from "ai";
+import { generateObject, ImagePart } from "ai";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 
 import { z } from "zod";
@@ -47,6 +47,8 @@ const BillSchema = z.object({
     .describe("Total discount. Float, max 3 decimal places."),
 });
 
+export type Bill = z.infer<typeof BillSchema>;
+
 const SYSTEM_PROMPT = `### Bill Extraction Assistant
 
 **Task:** Convert bill image to structured data with translations. Original language is Thai.
@@ -90,7 +92,7 @@ export const createAiService = (apiKey: string) => {
     apiKey,
   });
 
-  async function analyzeBillImage(imageUrl: string) {
+  async function analyzeBillImage(image: ImagePart["image"]) {
     try {
       const { object } = await generateObject({
         model: google("gemini-2.0-flash"),
@@ -102,7 +104,7 @@ export const createAiService = (apiKey: string) => {
           {
             role: "user",
             content: [
-              { type: "image", image: new URL(imageUrl) },
+              { type: "image", image },
               {
                 type: "text",
                 text: "Analyze the bill image and return the structured data.",

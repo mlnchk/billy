@@ -49,7 +49,7 @@ export function createBillService({
       messageId: number;
       imageUrl: string;
     }) {
-      const bill = await aiService.analyzeBillImage(params.imageUrl); // TODO: это может быть долго и функция отомрет, надо делать очередь
+      const bill = await aiService.analyzeBillImage(new URL(params.imageUrl)); // TODO: это может быть долго и функция отомрет, надо делать очередь
 
       return billRepo.saveBill(
         params.chatId,
