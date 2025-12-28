@@ -3,32 +3,20 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { validate, parse } from "@telegram-apps/init-data-node";
 
-import { createBillService } from "../features/bill/service";
-import { createAiService } from "../services/ai";
-import { createVoteService } from "../features/vote/service";
-import { createUserService } from "../features/user/service";
+import { setupDb } from "../services/db";
+import * as users from "../domain/users";
+import * as bills from "../domain/bills";
+import * as voting from "../domain/voting";
 
 export const apiRouter = new Hono<{
   Bindings: Env;
   Variables: {
-    billService: ReturnType<typeof createBillService>;
-    voteService: ReturnType<typeof createVoteService>;
-    userService: ReturnType<typeof createUserService>;
+    db: ReturnType<typeof setupDb>;
     userId: number;
   };
 }>()
   .use(async (c, next) => {
-    const db = c.env.BILLY_DB;
-    const aiService = createAiService(c.env.GOOGLEAI_API_KEY);
-
-    const userService = createUserService({ db });
-    const billService = createBillService({ db, aiService });
-    const voteService = createVoteService({ db });
-
-    c.set("billService", billService);
-    c.set("voteService", voteService);
-    c.set("userService", userService);
-
+    c.set("db", setupDb(c.env.BILLY_DB));
     await next();
   })
   .use(async (c, next) => {
@@ -61,26 +49,23 @@ export const apiRouter = new Hono<{
       return c.json({ error: "Telegram user is not found" }, 401);
     }
 
-    const userService = c.get("userService");
-    const user = await userService.findOrCreateUserByTelegramId(
-      telegramUser.id.toString(),
-      {
-        name: [telegramUser.first_name, telegramUser.last_name]
-          .filter(Boolean)
-          .join(" "),
-        photoUrl: telegramUser.photo_url,
-      },
-    );
+    const db = c.get("db");
+    const user = await users.findOrCreateUser(db, telegramUser.id.toString(), {
+      name: [telegramUser.first_name, telegramUser.last_name]
+        .filter(Boolean)
+        .join(" "),
+      photoUrl: telegramUser.photo_url,
+    });
 
     c.set("userId", user.id);
 
     await next();
   })
   .get("/user", async (c) => {
+    const db = c.get("db");
     const userId = c.get("userId");
 
-    const userService = c.get("userService");
-    const user = await userService.getUserById(userId);
+    const user = await users.findUserById(db, userId);
 
     if (!user) {
       return c.json({ error: "User not found" }, 404);
@@ -89,12 +74,10 @@ export const apiRouter = new Hono<{
     return c.json(user);
   })
   .get("/bill/:billId", async (c) => {
-    const billService = c.get("billService");
+    const db = c.get("db");
     const { billId } = c.req.param();
 
-    const billWithVotes = await billService.getBillWithVotes({
-      billId: Number(billId),
-    });
+    const billWithVotes = await bills.getBillWithVotes(db, Number(billId));
 
     if (!billWithVotes) {
       return c.json({ error: "Bill not found" }, 404);
@@ -103,10 +86,10 @@ export const apiRouter = new Hono<{
     return c.json(billWithVotes);
   })
   .get("/bill/:billId/results", async (c) => {
-    const billService = c.get("billService");
+    const db = c.get("db");
     const { billId } = c.req.param();
 
-    const calculationResult = await billService.getBillSplit(Number(billId));
+    const calculationResult = await bills.getBillSplit(db, Number(billId));
     if (!calculationResult) {
       return c.json(
         { error: "Bill not found or could not be calculated" },
@@ -117,12 +100,10 @@ export const apiRouter = new Hono<{
     return c.json(calculationResult);
   })
   .get("/bill/:billId/items/:itemId", async (c) => {
-    const billService = c.get("billService");
+    const db = c.get("db");
     const { itemId } = c.req.param();
 
-    const billItemWithVotes = await billService.getBillItemWithVotes({
-      itemId: Number(itemId),
-    });
+    const billItemWithVotes = await bills.getBillItemWithVotes(db, Number(itemId));
 
     if (!billItemWithVotes) {
       return c.json({ error: "Bill item details not found" }, 404);
@@ -142,11 +123,11 @@ export const apiRouter = new Hono<{
       ),
     ),
     async (c) => {
-      const voteService = c.get("voteService");
+      const db = c.get("db");
       const { itemId } = c.req.param();
       const votes = c.req.valid("json");
 
-      await voteService.updateVotesForBillItem({
+      await voting.updateVotesForBillItem(db, {
         billItemId: Number(itemId),
         votes: votes.map((vote) => ({
           userId: vote.userId,
@@ -166,13 +147,13 @@ export const apiRouter = new Hono<{
       }),
     ),
     async (c) => {
-      const voteService = c.get("voteService");
+      const db = c.get("db");
       const userId = c.get("userId");
 
       const { itemIds } = c.req.valid("json");
       const { billId } = c.req.param();
 
-      await voteService.voteForBill({
+      await voting.voteForBill(db, {
         billId: Number(billId),
         votes: itemIds.map((itemId) => ({
           userId,

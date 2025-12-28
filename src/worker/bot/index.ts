@@ -1,10 +1,11 @@
 import { Bot } from "grammy";
-import { AiService } from "../services/ai.ts";
-import { formatBillAnalysis, formatCalculation } from "./formatter.ts";
-import { startCommand } from "./commands/start.ts";
-import { createBillService } from "../features/bill/service.ts";
-import { createUserService } from "../features/user/service.ts";
-import { createVoteService } from "../features/vote/service.ts";
+import type { AiService } from "../services/ai";
+import type { DB } from "../domain/users";
+import { formatBillAnalysis, formatCalculation } from "./formatter";
+import { startCommand } from "./commands/start";
+import * as bills from "../domain/bills";
+import * as users from "../domain/users";
+import * as voting from "../domain/voting";
 import { InlineKeyboardMarkup } from "grammy/types";
 
 // Set up bot commands
@@ -41,11 +42,8 @@ export const createBot = async ({
 }: {
   botToken: string;
   aiService: AiService;
-  db: D1Database;
+  db: DB;
 }) => {
-  const billService = createBillService({ db, aiService });
-  const voteService = createVoteService({ db });
-  const userService = createUserService({ db });
 
   // Initialize bot with token from environment
   const bot = new Bot(botToken);
@@ -68,7 +66,7 @@ export const createBot = async ({
       });
     } catch (error) {
       console.error("Error in webapp debug command:", error);
-      await ctx.reply("❌ Error in webapp debug command.");
+      await ctx.reply("Error in webapp debug command.");
     }
   });
 
@@ -95,7 +93,7 @@ export const createBot = async ({
       const imageUrl = `https://api.telegram.org/file/bot${bot.token}/${file.file_path}`;
 
       // Send processing message
-      const parsingMsg = await ctx.reply("🔍 Parsing the bill...");
+      const parsingMsg = await ctx.reply("Parsing the bill...");
       // Show typing status while processing
       await ctx.api.sendChatAction(ctx.chat.id, "typing");
 
@@ -107,7 +105,7 @@ export const createBot = async ({
           console.error("Can't delete message:", error);
         });
 
-      const { bill, items } = await billService.parseAndSaveBill({
+      const { bill, items } = await bills.parseAndSaveBill(db, aiService, {
         chatId: ctx.chat.id,
         messageId: replyToMessage.message_id,
         imageUrl,
@@ -138,7 +136,7 @@ export const createBot = async ({
       console.error("Error processing split command:", error);
       console.log(error);
       await ctx.reply(
-        "❌ Sorry, something went wrong while processing the bill.",
+        "Sorry, something went wrong while processing the bill.",
       );
     }
   });
@@ -159,7 +157,8 @@ export const createBot = async ({
       }
 
       // Get bill using storage service
-      const billId = await billService.getBillIdByTelegramChatIdAndMessageId(
+      const billId = await bills.getBillIdByTelegramMessage(
+        db,
         ctx.chat.id,
         billMessageId,
       );
@@ -171,10 +170,10 @@ export const createBot = async ({
       }
 
       // Calculate bill split
-      const calculationResult = await billService.getBillSplit(billId);
+      const calculationResult = await bills.getBillSplit(db, billId);
       if (!calculationResult) {
         await ctx.reply(
-          "❌ Sorry, something went wrong while calculating the split.",
+          "Sorry, something went wrong while calculating the split.",
         );
         return;
       }
@@ -202,7 +201,7 @@ export const createBot = async ({
     } catch (error) {
       console.error("Error processing calculate command:", error);
       await ctx.reply(
-        "❌ Sorry, something went wrong while calculating the split.",
+        "Sorry, something went wrong while calculating the split.",
       );
     }
   });
@@ -219,7 +218,8 @@ export const createBot = async ({
       if (!billMessageId || !ctx.from) return;
 
       // Get bill using storage service
-      const billId = await billService.getBillIdByTelegramChatIdAndMessageId(
+      const billId = await bills.getBillIdByTelegramMessage(
+        db,
         ctx.chat.id,
         billMessageId,
       );
@@ -240,15 +240,14 @@ export const createBot = async ({
         return;
       }
 
-      const { id: userId } = await userService.findOrCreateUserByTelegramId(
-        ctx.from.id.toString(),
-        { name: ctx.from.first_name },
-      );
+      const user = await users.findOrCreateUser(db, ctx.from.id.toString(), {
+        name: ctx.from.first_name,
+      });
 
-      await voteService.voteForBill({
+      await voting.voteForBill(db, {
         billId,
         votes: votes.map((itemId) => ({
-          userId,
+          userId: user.id,
           itemId,
           quantity: 1, // TODO: quantity should be inferred from array item count
         })),
@@ -261,13 +260,13 @@ export const createBot = async ({
           console.error("Can't delete message:", error);
         });
 
-      await ctx.reply(`☑️ ${ctx.from.first_name}: ${votes.join(", ")}`, {
+      await ctx.reply(`${ctx.from.first_name}: ${votes.join(", ")}`, {
         reply_parameters: { message_id: billMessageId },
       });
     } catch (error) {
       console.error("Error processing vote:", error);
       await ctx.reply(
-        "❌ Sorry, something went wrong while processing your vote.",
+        "Sorry, something went wrong while processing your vote.",
       );
     }
   });

@@ -47,7 +47,7 @@ const BillSchema = z.object({
     .describe("Total discount. Float, max 3 decimal places."),
 });
 
-export type Bill = z.infer<typeof BillSchema>;
+export type ParsedBillData = z.infer<typeof BillSchema>;
 
 const SYSTEM_PROMPT = `### Bill Extraction Assistant
 

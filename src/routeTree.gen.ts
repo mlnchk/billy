@@ -8,104 +8,45 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-// Import Routes
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppBillBillIdIndexRouteImport } from './routes/app.bill.$billId.index'
+import { Route as AppBillBillIdVoteRouteImport } from './routes/app.bill.$billId.vote'
+import { Route as AppBillBillIdTotalsRouteImport } from './routes/app.bill.$billId.totals'
+import { Route as AppBillBillIdItemsIndexRouteImport } from './routes/app.bill.$billId.items.index'
+import { Route as AppBillBillIdItemsItemIdRouteImport } from './routes/app.bill.$billId.items.$itemId'
 
-import { Route as rootRoute } from './routes/__root'
-import { Route as IndexImport } from './routes/index'
-import { Route as AppBillBillIdIndexImport } from './routes/app.bill.$billId.index'
-import { Route as AppBillBillIdVoteImport } from './routes/app.bill.$billId.vote'
-import { Route as AppBillBillIdTotalsImport } from './routes/app.bill.$billId.totals'
-import { Route as AppBillBillIdItemsIndexImport } from './routes/app.bill.$billId.items.index'
-import { Route as AppBillBillIdItemsItemIdImport } from './routes/app.bill.$billId.items.$itemId'
-
-// Create/Update Routes
-
-const IndexRoute = IndexImport.update({
+const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const AppBillBillIdIndexRoute = AppBillBillIdIndexImport.update({
+const AppBillBillIdIndexRoute = AppBillBillIdIndexRouteImport.update({
   id: '/app/bill/$billId/',
   path: '/app/bill/$billId/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const AppBillBillIdVoteRoute = AppBillBillIdVoteImport.update({
+const AppBillBillIdVoteRoute = AppBillBillIdVoteRouteImport.update({
   id: '/app/bill/$billId/vote',
   path: '/app/bill/$billId/vote',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const AppBillBillIdTotalsRoute = AppBillBillIdTotalsImport.update({
+const AppBillBillIdTotalsRoute = AppBillBillIdTotalsRouteImport.update({
   id: '/app/bill/$billId/totals',
   path: '/app/bill/$billId/totals',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const AppBillBillIdItemsIndexRoute = AppBillBillIdItemsIndexImport.update({
+const AppBillBillIdItemsIndexRoute = AppBillBillIdItemsIndexRouteImport.update({
   id: '/app/bill/$billId/items/',
   path: '/app/bill/$billId/items/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const AppBillBillIdItemsItemIdRoute = AppBillBillIdItemsItemIdImport.update({
-  id: '/app/bill/$billId/items/$itemId',
-  path: '/app/bill/$billId/items/$itemId',
-  getParentRoute: () => rootRoute,
-} as any)
-
-// Populate the FileRoutesByPath interface
-
-declare module '@tanstack/react-router' {
-  interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexImport
-      parentRoute: typeof rootRoute
-    }
-    '/app/bill/$billId/totals': {
-      id: '/app/bill/$billId/totals'
-      path: '/app/bill/$billId/totals'
-      fullPath: '/app/bill/$billId/totals'
-      preLoaderRoute: typeof AppBillBillIdTotalsImport
-      parentRoute: typeof rootRoute
-    }
-    '/app/bill/$billId/vote': {
-      id: '/app/bill/$billId/vote'
-      path: '/app/bill/$billId/vote'
-      fullPath: '/app/bill/$billId/vote'
-      preLoaderRoute: typeof AppBillBillIdVoteImport
-      parentRoute: typeof rootRoute
-    }
-    '/app/bill/$billId/': {
-      id: '/app/bill/$billId/'
-      path: '/app/bill/$billId'
-      fullPath: '/app/bill/$billId'
-      preLoaderRoute: typeof AppBillBillIdIndexImport
-      parentRoute: typeof rootRoute
-    }
-    '/app/bill/$billId/items/$itemId': {
-      id: '/app/bill/$billId/items/$itemId'
-      path: '/app/bill/$billId/items/$itemId'
-      fullPath: '/app/bill/$billId/items/$itemId'
-      preLoaderRoute: typeof AppBillBillIdItemsItemIdImport
-      parentRoute: typeof rootRoute
-    }
-    '/app/bill/$billId/items/': {
-      id: '/app/bill/$billId/items/'
-      path: '/app/bill/$billId/items'
-      fullPath: '/app/bill/$billId/items'
-      preLoaderRoute: typeof AppBillBillIdItemsIndexImport
-      parentRoute: typeof rootRoute
-    }
-  }
-}
-
-// Create and export the route tree
+const AppBillBillIdItemsItemIdRoute =
+  AppBillBillIdItemsItemIdRouteImport.update({
+    id: '/app/bill/$billId/items/$itemId',
+    path: '/app/bill/$billId/items/$itemId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -115,7 +56,6 @@ export interface FileRoutesByFullPath {
   '/app/bill/$billId/items/$itemId': typeof AppBillBillIdItemsItemIdRoute
   '/app/bill/$billId/items': typeof AppBillBillIdItemsIndexRoute
 }
-
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app/bill/$billId/totals': typeof AppBillBillIdTotalsRoute
@@ -124,9 +64,8 @@ export interface FileRoutesByTo {
   '/app/bill/$billId/items/$itemId': typeof AppBillBillIdItemsItemIdRoute
   '/app/bill/$billId/items': typeof AppBillBillIdItemsIndexRoute
 }
-
 export interface FileRoutesById {
-  __root__: typeof rootRoute
+  __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/app/bill/$billId/totals': typeof AppBillBillIdTotalsRoute
   '/app/bill/$billId/vote': typeof AppBillBillIdVoteRoute
@@ -134,7 +73,6 @@ export interface FileRoutesById {
   '/app/bill/$billId/items/$itemId': typeof AppBillBillIdItemsItemIdRoute
   '/app/bill/$billId/items/': typeof AppBillBillIdItemsIndexRoute
 }
-
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
@@ -162,7 +100,6 @@ export interface FileRouteTypes {
     | '/app/bill/$billId/items/'
   fileRoutesById: FileRoutesById
 }
-
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppBillBillIdTotalsRoute: typeof AppBillBillIdTotalsRoute
@@ -170,6 +107,53 @@ export interface RootRouteChildren {
   AppBillBillIdIndexRoute: typeof AppBillBillIdIndexRoute
   AppBillBillIdItemsItemIdRoute: typeof AppBillBillIdItemsItemIdRoute
   AppBillBillIdItemsIndexRoute: typeof AppBillBillIdItemsIndexRoute
+}
+
+declare module '@tanstack/react-router' {
+  interface FileRoutesByPath {
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/bill/$billId/': {
+      id: '/app/bill/$billId/'
+      path: '/app/bill/$billId'
+      fullPath: '/app/bill/$billId'
+      preLoaderRoute: typeof AppBillBillIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/bill/$billId/vote': {
+      id: '/app/bill/$billId/vote'
+      path: '/app/bill/$billId/vote'
+      fullPath: '/app/bill/$billId/vote'
+      preLoaderRoute: typeof AppBillBillIdVoteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/bill/$billId/totals': {
+      id: '/app/bill/$billId/totals'
+      path: '/app/bill/$billId/totals'
+      fullPath: '/app/bill/$billId/totals'
+      preLoaderRoute: typeof AppBillBillIdTotalsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/bill/$billId/items/': {
+      id: '/app/bill/$billId/items/'
+      path: '/app/bill/$billId/items'
+      fullPath: '/app/bill/$billId/items'
+      preLoaderRoute: typeof AppBillBillIdItemsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/bill/$billId/items/$itemId': {
+      id: '/app/bill/$billId/items/$itemId'
+      path: '/app/bill/$billId/items/$itemId'
+      fullPath: '/app/bill/$billId/items/$itemId'
+      preLoaderRoute: typeof AppBillBillIdItemsItemIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+  }
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -180,43 +164,6 @@ const rootRouteChildren: RootRouteChildren = {
   AppBillBillIdItemsItemIdRoute: AppBillBillIdItemsItemIdRoute,
   AppBillBillIdItemsIndexRoute: AppBillBillIdItemsIndexRoute,
 }
-
-export const routeTree = rootRoute
+export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-/* ROUTE_MANIFEST_START
-{
-  "routes": {
-    "__root__": {
-      "filePath": "__root.tsx",
-      "children": [
-        "/",
-        "/app/bill/$billId/totals",
-        "/app/bill/$billId/vote",
-        "/app/bill/$billId/",
-        "/app/bill/$billId/items/$itemId",
-        "/app/bill/$billId/items/"
-      ]
-    },
-    "/": {
-      "filePath": "index.tsx"
-    },
-    "/app/bill/$billId/totals": {
-      "filePath": "app.bill.$billId.totals.tsx"
-    },
-    "/app/bill/$billId/vote": {
-      "filePath": "app.bill.$billId.vote.tsx"
-    },
-    "/app/bill/$billId/": {
-      "filePath": "app.bill.$billId.index.tsx"
-    },
-    "/app/bill/$billId/items/$itemId": {
-      "filePath": "app.bill.$billId.items.$itemId.tsx"
-    },
-    "/app/bill/$billId/items/": {
-      "filePath": "app.bill.$billId.items.index.tsx"
-    }
-  }
-}
-ROUTE_MANIFEST_END */

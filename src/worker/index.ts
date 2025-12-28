@@ -1,7 +1,7 @@
 import { webhookCallback } from "grammy";
 import { createBot } from "./bot";
-// import { app } from "./server";
 import { createAiService } from "./services/ai";
+import { setupDb } from "./services/db";
 import { Hono } from "hono";
 import { apiRouter } from "./routes/api";
 import { setBotWebhook } from "./bot/set-bot-webhook";
@@ -17,7 +17,7 @@ app.use(`/api/bot/*`, async (c) => {
   const bot = await createBot({
     botToken: c.env.BOT_TOKEN,
     aiService: createAiService(c.env.GOOGLEAI_API_KEY),
-    db: c.env.BILLY_DB,
+    db: setupDb(c.env.BILLY_DB),
   });
 
   return webhookCallback(bot, "hono", { timeoutMilliseconds: 100_000 })(c);
